@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass
 from html import unescape
 from html.parser import HTMLParser
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from backend.crawler.url_filters import normalize_url
 
@@ -27,6 +27,7 @@ class _SimpleHTMLParser(HTMLParser):
     def __init__(self, base_url: str) -> None:
         super().__init__(convert_charrefs=True)
         self.base_url = base_url
+        self.base_host = urlparse(base_url).hostname or ""
         self.title_parts: list[str] = []
         self.h1_parts: list[str] = []
         self.text_parts: list[str] = []
@@ -64,7 +65,8 @@ class _SimpleHTMLParser(HTMLParser):
                 return
             absolute = normalize_url(urljoin(self.base_url, href))
             if absolute.startswith(("http://", "https://")):
-                if absolute.startswith(normalize_url(self.base_url)):
+                link_host = urlparse(absolute).hostname or ""
+                if link_host == self.base_host:
                     self.internal_links.add(absolute)
                 else:
                     self.external_links.add(absolute)
