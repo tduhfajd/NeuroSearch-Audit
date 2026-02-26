@@ -113,3 +113,47 @@ def test_ana07_flags_missing_required_schema_fields() -> None:
     assert any(item.affected_url == "https://example.com/404-page" for item in ana07)
     assert any("Organization" in item.description for item in ana07)
     assert any("Article" in item.description for item in ana07)
+
+
+def test_ana08_detects_missing_trust_signals() -> None:
+    db = make_db_session()
+    try:
+        audit, pages = _seed_advanced_dataset(db)
+        result = execute_analysis(audit=audit, pages=pages)
+    finally:
+        db.close()
+
+    ana08 = [item for item in result.issue_candidates if item.rule_id == "ANA-08"]
+    assert len(ana08) == 1
+    assert "trust" in ana08[0].title.lower() or "довер" in ana08[0].title.lower()
+
+
+def test_ana08_passes_when_trust_pages_exist() -> None:
+    db = make_db_session()
+    try:
+        audit = Audit(
+            url="https://example.com",
+            status="completed",
+            crawl_depth=100,
+            pages_crawled=4,
+            meta={},
+        )
+        db.add(audit)
+        db.commit()
+        db.refresh(audit)
+        pages = [
+            Page(audit_id=audit.id, url="https://example.com/contact", status_code=200),
+            Page(audit_id=audit.id, url="https://example.com/about", status_code=200),
+            Page(audit_id=audit.id, url="https://example.com/privacy-policy", status_code=200),
+            Page(audit_id=audit.id, url="https://example.com/requisites", status_code=200),
+        ]
+        db.add_all(pages)
+        db.commit()
+        for page in pages:
+            db.refresh(page)
+        result = execute_analysis(audit=audit, pages=pages)
+    finally:
+        db.close()
+
+    ana08 = [item for item in result.issue_candidates if item.rule_id == "ANA-08"]
+    assert ana08 == []
