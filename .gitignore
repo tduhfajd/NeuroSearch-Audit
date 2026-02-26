@@ -25,3 +25,9 @@ build/
 # Runtime files
 *.log
 reports/output/
+
+# Local playbook/docs (keep local only)
+phase-forge-playbook/
+AGENTS.md
+keis.md
+neurosearch-audit-tool.md
