@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 
 from backend.db.models import Page
 
-
 PAGE_FIELD_NAMES = {
     "url",
     "status_code",

@@ -65,7 +65,10 @@ def _to_response(audit: Audit) -> AuditReadResponse:
 
 
 @router.post("", response_model=AuditCreateResponse, status_code=status.HTTP_201_CREATED)
-async def create_audit(payload: AuditCreateRequest, db: Session = Depends(get_db)) -> AuditCreateResponse:
+async def create_audit(
+    payload: AuditCreateRequest,
+    db: Session = Depends(get_db),  # noqa: B008
+) -> AuditCreateResponse:
     try:
         audit = Audit(
             url=str(payload.url),
@@ -94,7 +97,7 @@ async def create_audit(payload: AuditCreateRequest, db: Session = Depends(get_db
 
 
 @router.get("", response_model=list[AuditReadResponse])
-async def list_audits(db: Session = Depends(get_db)) -> list[AuditReadResponse]:
+async def list_audits(db: Session = Depends(get_db)) -> list[AuditReadResponse]:  # noqa: B008
     try:
         rows = db.query(Audit).order_by(Audit.id.desc()).all()
     except SQLAlchemyError:

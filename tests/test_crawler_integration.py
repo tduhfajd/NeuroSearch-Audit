@@ -23,7 +23,9 @@ def db_session() -> Session:
         db.close()
 
 
-def test_enqueue_queue_progress_lifecycle(db_session: Session, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_enqueue_queue_progress_lifecycle(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
     audit = Audit(
         url="https://example.com",
         status="pending",
@@ -111,7 +113,9 @@ def test_persistence_upsert_updates_existing_row(db_session: Session) -> None:
     assert rows[0].pagespeed_score == 88.0
 
 
-def test_meta_and_pagespeed_written_after_job(db_session: Session, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_meta_and_pagespeed_written_after_job(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
     audit = Audit(
         url="https://example.com",
         status="pending",
