@@ -10,25 +10,25 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 Phase: 2 of 7 (Crawler)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-26 — Выполнен plan 02-01 (crawler core + extraction).
+Last activity: 2026-02-26 — Выполнен plan 02-02 (JS fallback + robots/sitemap + pagespeed providers).
 
-Progress: [██░░░░░░░░] 22%
+Progress: [███░░░░░░░] 28%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 9.5 minutes
-- Total execution time: 0.6 hours
+- Total plans completed: 5
+- Average duration: 9.0 minutes
+- Total execution time: 0.7 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation | 3/3 | 25 min | 8.3 min |
-| 2. Crawler | 1/3 | 13 min | 13 min |
+| 2. Crawler | 2/3 | 20 min | 10 min |
 | 3. Analyzer | 0/8 | - | - |
 | 4. AI Bridge | 0/7 | - | - |
 | 5. Dashboard | 0/6 | - | - |
@@ -44,11 +44,10 @@ Progress: [██░░░░░░░░] 22%
 
 - **Phase 2 crawler strategy** — queue-based orchestration, sitemap+homepage hybrid discovery, strict host default
 - **Extraction baseline** — title/h1/meta/canonical/robots/jsonld/links/word_count/inlinks_count implemented
-- **Resilience defaults** — crawl depth + runtime timeout + retry/backoff
+- **JS/checks/pagespeed baseline** — Playwright heuristic fallback, robots/sitemap checks, PageSpeed API primary + Lighthouse fallback
 
 ### Pending Todos
 
-- Реализовать JS rendering + robots/sitemap checks + pagespeed providers (plan 02-02)
 - Интегрировать API/RQ/DB persistence end-to-end (plan 02-03)
 - Получить Google PageSpeed API key перед production-like прогонами CRL-05
 
@@ -61,5 +60,5 @@ Progress: [██░░░░░░░░] 22%
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Завершён plan 02-01, следующий шаг — plan 02-02 (JS + site checks + pagespeed)
-Resume file: .planning/phases/02-crawler/02-01-SUMMARY.md
+Stopped at: Завершён plan 02-02, следующий шаг — plan 02-03 (API + queue + persistence integration)
+Resume file: .planning/phases/02-crawler/02-02-SUMMARY.md
