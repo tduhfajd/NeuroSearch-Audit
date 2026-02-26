@@ -1,13 +1,13 @@
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
-from pydantic import BaseModel, HttpUrl, field_validator
 from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel, HttpUrl, field_validator
 
 router = APIRouter()
 
 
-class AuditGoal(str, Enum):
+class AuditGoal(StrEnum):
     leads = "leads"
     info = "info"
     local = "local"
