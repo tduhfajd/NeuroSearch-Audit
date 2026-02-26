@@ -58,7 +58,8 @@ class PlaywrightSessionBridge:
                 page.goto(url, wait_until="domcontentloaded", timeout=60000)
                 try:
                     input(
-                        "Complete ChatGPT login in browser, then press Enter to save session state... "
+                        "Complete ChatGPT login in browser, "
+                        "then press Enter to save session state... "
                     )
                 except EOFError:
                     page.wait_for_timeout(5000)

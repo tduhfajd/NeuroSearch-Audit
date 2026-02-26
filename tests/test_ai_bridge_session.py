@@ -61,7 +61,7 @@ class FakeLocator:
     def count(self) -> int:
         return self._count
 
-    def first(self) -> "FakeLocator":
+    def first(self) -> FakeLocator:
         return self
 
     def fill(self, text: str) -> None:
