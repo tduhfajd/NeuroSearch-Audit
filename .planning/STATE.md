@@ -5,29 +5,29 @@
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Аудит сайта → готовый PDF-отчёт с КП за один запуск
-**Current focus:** Phase 1 — Foundation
+**Current focus:** Phase 2 — Crawler
 
 ## Current Position
 
-Phase: 1 of 7 (Foundation)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-02-26 — Выполнен план 01-02 (SQLAlchemy модели + Alembic baseline).
+Phase: 2 of 7 (Crawler)
+Plan: 0 of 7 in current phase
+Status: Ready to execute
+Last activity: 2026-02-26 — Phase 1 завершена (bootstrap, DB schema/migrations, FastAPI skeleton, runbook, smoke checks).
 
-Progress: [███████░░░] 67%
+Progress: [█░░░░░░░░░] 14%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 9.5 minutes
-- Total execution time: 0.3 hours
+- Total plans completed: 3
+- Average duration: 8.3 minutes
+- Total execution time: 0.4 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1. Foundation | 2/3 | 19 min | 9.5 min |
+| 1. Foundation | 3/3 | 25 min | 8.3 min |
 | 2. Crawler | 0/7 | - | - |
 | 3. Analyzer | 0/8 | - | - |
 | 4. AI Bridge | 0/7 | - | - |
@@ -42,16 +42,14 @@ Progress: [███████░░░] 67%
 Решения логируются в PROJECT.md Key Decisions.
 Недавние решения, влияющие на текущую работу:
 
-- **Python + FastAPI** — выбран стек (Scrapy + Playwright + WeasyPrint — Python-only экосистема)
-- **ChatGPT Playwright** — AI Bridge без API-ключа, через браузерную автоматизацию
-- **HTML + Tailwind + Alpine.js** — фронтенд без сборки, достаточно для single-user инструмента
-- **Foundation уточнение** — `/health` остаётся строгим контрактом `{"status":"ok"}`, `/health/db` отдельная диагностика
-- **DB baseline** — sync SQLAlchemy + `postgresql+psycopg`, миграция `20260226_0001` в head
+- **Foundation API contracts** — `/health` фиксирован как `{"status":"ok"}`, `/health/db` отдельная диагностика
+- **DB baseline** — sync SQLAlchemy + `postgresql+psycopg`, Alembic head `20260226_0001`
+- **Local infra path** — Homebrew как основной, Docker Compose как fallback
 
 ### Pending Todos
 
-- Завершить runbook и smoke-verification (Phase 1, plan 01-03)
-- Получить Google PageSpeed API key перед Phase 2
+- Начать реализацию Phase 2: crawler (Scrapy + парсинг полей страниц)
+- Получить Google PageSpeed API key перед задачами CRL-05
 
 ### Blockers/Concerns
 
@@ -62,5 +60,5 @@ Progress: [███████░░░] 67%
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Завершён plan 01-02, следующий шаг — plan 01-03 (runbook + smoke verification)
-Resume file: .planning/phases/01-foundation/01-02-SUMMARY.md
+Stopped at: Phase 1 complete, next step — Phase 2 planning/execution
+Resume file: .planning/phases/01-foundation/01-03-SUMMARY.md
