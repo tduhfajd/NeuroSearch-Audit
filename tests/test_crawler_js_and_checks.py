@@ -54,3 +54,78 @@ def test_js_render_path_keeps_http_when_not_needed() -> None:
     assert renderer.called is False
     assert result_html == http_html
     assert reason == "http-sufficient"
+
+from backend.crawler.pagespeed import (  # noqa: E402
+    GooglePageSpeedProvider,
+    HybridPageSpeedProvider,
+    LighthouseProvider,
+    collect_pagespeed_scores,
+    top_pages_by_inlinks,
+)
+from backend.crawler.site_checks import check_robots_and_sitemap  # noqa: E402
+
+
+def test_robots_and_sitemap_statuses_are_reported() -> None:
+    codes = {
+        "https://example.com/robots.txt": 200,
+        "https://example.com/sitemap.xml": 404,
+    }
+
+    status = check_robots_and_sitemap(base_url="https://example.com", fetch_status=lambda url: codes[url])
+
+    assert status.robots_status == "ok"
+    assert status.sitemap_status == "missing"
+
+
+def test_top10_selection_prefers_higher_inlinks() -> None:
+    pages = [{"url": f"https://example.com/{idx}", "inlinks_count": idx} for idx in range(15)]
+
+    top = top_pages_by_inlinks(pages, limit=10)
+
+    assert len(top) == 10
+    assert top[0]["inlinks_count"] == 14
+    assert top[-1]["inlinks_count"] == 5
+
+
+def test_pagespeed_api_primary_is_used_when_available() -> None:
+    provider = HybridPageSpeedProvider(
+        primary=GooglePageSpeedProvider(
+            api_key="token",
+            requester=lambda _: {"lighthouseResult": {"categories": {"performance": {"score": 0.73}}}},
+        ),
+        fallback=LighthouseProvider(runner=lambda _: "{}"),
+    )
+
+    result = provider.get_score_with_source("https://example.com")
+
+    assert result.score == 73.0
+    assert result.source == "pagespeed_api"
+
+
+def test_pagespeed_fallback_to_lighthouse_without_api_key() -> None:
+    provider = HybridPageSpeedProvider(
+        primary=GooglePageSpeedProvider(api_key=None),
+        fallback=LighthouseProvider(
+            runner=lambda _: '{"categories": {"performance": {"score": 0.81}}}'
+        ),
+    )
+
+    result = provider.get_score_with_source("https://example.com")
+
+    assert result.score == 81.0
+    assert result.source == "lighthouse"
+
+
+def test_collect_pagespeed_scores_respects_top10_limit() -> None:
+    pages = [{"url": f"https://example.com/{idx}", "inlinks_count": idx} for idx in range(30)]
+    provider = HybridPageSpeedProvider(
+        primary=GooglePageSpeedProvider(api_key=None),
+        fallback=LighthouseProvider(
+            runner=lambda _: '{"categories": {"performance": {"score": 0.5}}}'
+        ),
+    )
+
+    results = collect_pagespeed_scores(pages, provider, limit=10)
+
+    assert len(results) == 10
+    assert all(item.source == "lighthouse" for item in results)
