@@ -6,6 +6,7 @@ from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
 from backend.analyzer.rules import IssueCandidate, Rule, RuleContext, get_rule_registry
+from backend.analyzer.scoring import calculate_seo_score
 from backend.db.models import Audit, Issue, Page
 
 
@@ -19,6 +20,7 @@ class AnalyzeSummary:
     audit_id: int
     issues_created: int
     by_priority: dict[str, int]
+    seo_score: float
 
 
 def build_context(audit: Audit, pages: list[Page]) -> RuleContext:
@@ -50,6 +52,7 @@ def analyze_audit(db: Session, audit_id: int, rules: list[Rule] | None = None) -
 
     pages = db.query(Page).filter(Page.audit_id == audit_id).all()
     result = execute_analysis(audit=audit, pages=pages, rules=rules)
+    seo_score = calculate_seo_score(result.issue_candidates)
 
     db.execute(delete(Issue).where(Issue.audit_id == audit_id))
 
@@ -71,6 +74,12 @@ def analyze_audit(db: Session, audit_id: int, rules: list[Rule] | None = None) -
         by_priority[priority] = by_priority.get(priority, 0) + 1
         issues_created += 1
 
+    audit.seo_score = seo_score
     db.flush()
     db.commit()
-    return AnalyzeSummary(audit_id=audit_id, issues_created=issues_created, by_priority=by_priority)
+    return AnalyzeSummary(
+        audit_id=audit_id,
+        issues_created=issues_created,
+        by_priority=by_priority,
+        seo_score=seo_score,
+    )

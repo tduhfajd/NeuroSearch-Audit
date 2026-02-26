@@ -56,6 +56,7 @@ class AnalyzeAuditResponse(BaseModel):
     audit_id: int
     issues_created: int
     by_priority: dict[str, int]
+    seo_score: float
 
 
 def _to_response(audit: Audit) -> AuditReadResponse:
@@ -129,4 +130,5 @@ async def analyze_audit_endpoint(
         audit_id=summary.audit_id,
         issues_created=summary.issues_created,
         by_priority=summary.by_priority,
+        seo_score=summary.seo_score,
     )
