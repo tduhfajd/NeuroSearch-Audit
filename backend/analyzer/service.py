@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from backend.analyzer.rules import IssueCandidate, Rule, RuleContext, get_rule_registry
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
+from backend.analyzer.rules import IssueCandidate, Rule, RuleContext, get_rule_registry
 from backend.db.models import Audit, Issue, Page
 
 
@@ -33,7 +33,11 @@ def run_rules(context: RuleContext, rules: list[Rule] | None = None) -> list[Iss
     return issues
 
 
-def execute_analysis(audit: Audit, pages: list[Page], rules: list[Rule] | None = None) -> AnalysisResult:
+def execute_analysis(
+    audit: Audit,
+    pages: list[Page],
+    rules: list[Rule] | None = None,
+) -> AnalysisResult:
     context = build_context(audit=audit, pages=pages)
     issue_candidates = run_rules(context=context, rules=rules)
     return AnalysisResult(issue_candidates=issue_candidates)

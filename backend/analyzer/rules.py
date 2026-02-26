@@ -77,7 +77,9 @@ class NoindexRule:
 
     def evaluate(self, context: RuleContext) -> list[IssueCandidate]:
         issues: list[IssueCandidate] = []
-        disallow_patterns = context.audit.meta.get("robots_disallow_patterns", []) if isinstance(context.audit.meta, dict) else []
+        disallow_patterns = []
+        if isinstance(context.audit.meta, dict):
+            disallow_patterns = context.audit.meta.get("robots_disallow_patterns", [])
         for page in context.pages:
             url = page.url
             if _is_utility_url(url):
@@ -96,13 +98,19 @@ class NoindexRule:
                 )
                 continue
             path = (urlparse(url).path or "").lower()
-            if any(path.startswith(pattern.lower()) for pattern in disallow_patterns if isinstance(pattern, str)):
+            if any(
+                path.startswith(pattern.lower())
+                for pattern in disallow_patterns
+                if isinstance(pattern, str)
+            ):
                 issues.append(
                     IssueCandidate(
                         rule_id=self.rule_id,
                         title="Страница блокируется robots.txt",
                         description="URL совпадает с disallow-паттерном robots.txt.",
-                        recommendation="Проверьте robots.txt и откройте важные страницы для индексации.",
+                        recommendation=(
+                            "Проверьте robots.txt и откройте важные страницы для индексации."
+                        ),
                         affected_url=url,
                         page_id=page.id,
                     )
@@ -208,7 +216,9 @@ class CanonicalRule:
                         rule_id=self.rule_id,
                         title="Отсутствует canonical",
                         description="На странице не указан canonical URL.",
-                        recommendation="Добавьте canonical, ведущий на каноническую версию страницы.",
+                        recommendation=(
+                            "Добавьте canonical, ведущий на каноническую версию страницы."
+                        ),
                         affected_url=page.url,
                         page_id=page.id,
                     )
@@ -221,8 +231,12 @@ class CanonicalRule:
                     IssueCandidate(
                         rule_id=self.rule_id,
                         title="Canonical указывает на другой домен",
-                        description="Canonical ведет на внешний домен и может вывести страницу из индекса.",
-                        recommendation="Используйте canonical внутри целевого домена или self-canonical.",
+                        description=(
+                            "Canonical ведет на внешний домен и может вывести страницу из индекса."
+                        ),
+                        recommendation=(
+                            "Используйте canonical внутри целевого домена или self-canonical."
+                        ),
                         affected_url=page.url,
                         page_id=page.id,
                     )

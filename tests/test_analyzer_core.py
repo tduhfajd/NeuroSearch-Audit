@@ -3,8 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from fastapi.testclient import TestClient
-from sqlalchemy import func, select
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -87,7 +86,9 @@ def test_execute_analysis_returns_issue_candidates_for_registered_rules() -> Non
 
     assert len(result.issue_candidates) >= 2
     assert all(item.rule_id.startswith("ANA-") for item in result.issue_candidates)
-    assert all(item.resolve_priority() in {"P0", "P1", "P2", "P3"} for item in result.issue_candidates)
+    assert all(
+        item.resolve_priority() in {"P0", "P1", "P2", "P3"} for item in result.issue_candidates
+    )
 
 
 def _seed_pages_for_ana_01_04(db: Session) -> tuple[Audit, list[Page]]:
