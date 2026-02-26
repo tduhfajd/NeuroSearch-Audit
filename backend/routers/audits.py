@@ -6,6 +6,11 @@ from pydantic import BaseModel, HttpUrl, field_validator
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from backend.analyzer.ai_bridge import (
+    PlaywrightChatGPTTransport,
+    ReauthRequiredError,
+    run_ai_analyze,
+)
 from backend.analyzer.service import analyze_audit
 from backend.crawler.jobs import enqueue_crawl_job
 from backend.db.models import Audit, Issue
@@ -57,6 +62,14 @@ class AnalyzeAuditResponse(BaseModel):
     issues_created: int
     by_priority: dict[str, int]
     seo_score: float
+
+
+class AIAnalyzeResponse(BaseModel):
+    audit_id: int
+    status: str
+    processed_pages: int
+    avri_score: float | None = None
+    errors: list[str]
 
 
 class IssueReadResponse(BaseModel):
@@ -148,6 +161,33 @@ async def analyze_audit_endpoint(
         issues_created=summary.issues_created,
         by_priority=summary.by_priority,
         seo_score=summary.seo_score,
+    )
+
+
+@router.post("/{audit_id}/ai-analyze", response_model=AIAnalyzeResponse)
+async def ai_analyze_audit_endpoint(
+    audit_id: int,
+    db: Session = Depends(get_db),  # noqa: B008
+) -> AIAnalyzeResponse:
+    try:
+        summary = run_ai_analyze(db, audit_id, transport=PlaywrightChatGPTTransport())
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail="Audit not found") from exc
+    except ReauthRequiredError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail={"code": "reauth_required", "message": str(exc)},
+        ) from exc
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=503, detail="Database unavailable") from exc
+
+    return AIAnalyzeResponse(
+        audit_id=summary.audit_id,
+        status=summary.status,
+        processed_pages=summary.processed_pages,
+        avri_score=summary.avri_score,
+        errors=summary.errors,
     )
 
 
