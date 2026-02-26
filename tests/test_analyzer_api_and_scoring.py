@@ -130,3 +130,34 @@ def test_scr01_analyze_audit_returns_issues_and_score() -> None:
 
     assert summary.issues_created == issue_rows
     assert 0.0 <= summary.seo_score <= 100.0
+
+
+def test_scr03_issues_endpoint_returns_grouped_priorities() -> None:
+    client, session_local = _build_client_and_session()
+    try:
+        audit_id = _seed_audit_data(session_local)
+        analyze_response = client.post(f"/audits/{audit_id}/analyze")
+        grouped_response = client.get(f"/audits/{audit_id}/issues")
+        grouped = grouped_response.json()
+    finally:
+        app.dependency_overrides.clear()
+
+    assert analyze_response.status_code == 200
+    assert grouped_response.status_code == 200
+    assert set(grouped.keys()) == {"P0", "P1", "P2", "P3"}
+    assert isinstance(grouped["P0"], list)
+    assert isinstance(grouped["P1"], list)
+    assert isinstance(grouped["P2"], list)
+    assert isinstance(grouped["P3"], list)
+    total = len(grouped["P0"]) + len(grouped["P1"]) + len(grouped["P2"]) + len(grouped["P3"])
+    assert total == analyze_response.json()["issues_created"]
+
+
+def test_scr03_issues_endpoint_returns_404_for_missing_audit() -> None:
+    client, _ = _build_client_and_session()
+    try:
+        response = client.get("/audits/999/issues")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 404

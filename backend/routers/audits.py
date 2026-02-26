@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from backend.analyzer.service import analyze_audit
 from backend.crawler.jobs import enqueue_crawl_job
-from backend.db.models import Audit
+from backend.db.models import Audit, Issue
 from backend.db.session import get_db
 
 router = APIRouter()
@@ -57,6 +57,23 @@ class AnalyzeAuditResponse(BaseModel):
     issues_created: int
     by_priority: dict[str, int]
     seo_score: float
+
+
+class IssueReadResponse(BaseModel):
+    id: int
+    rule_id: str
+    priority: str
+    title: str
+    description: str
+    recommendation: str
+    affected_url: str | None = None
+
+
+class GroupedIssuesResponse(BaseModel):
+    P0: list[IssueReadResponse]
+    P1: list[IssueReadResponse]
+    P2: list[IssueReadResponse]
+    P3: list[IssueReadResponse]
 
 
 def _to_response(audit: Audit) -> AuditReadResponse:
@@ -132,3 +149,32 @@ async def analyze_audit_endpoint(
         by_priority=summary.by_priority,
         seo_score=summary.seo_score,
     )
+
+
+@router.get("/{audit_id}/issues", response_model=GroupedIssuesResponse)
+async def get_grouped_issues(
+    audit_id: int,
+    db: Session = Depends(get_db),  # noqa: B008
+) -> GroupedIssuesResponse:
+    audit = db.get(Audit, audit_id)
+    if audit is None:
+        raise HTTPException(status_code=404, detail="Audit not found")
+
+    grouped: dict[str, list[IssueReadResponse]] = {"P0": [], "P1": [], "P2": [], "P3": []}
+    rows = db.query(Issue).filter(Issue.audit_id == audit_id).order_by(Issue.id.asc()).all()
+    for row in rows:
+        if row.priority not in grouped:
+            continue
+        grouped[row.priority].append(
+            IssueReadResponse(
+                id=row.id,
+                rule_id=row.rule_id,
+                priority=row.priority,
+                title=row.title,
+                description=row.description,
+                recommendation=row.recommendation,
+                affected_url=row.affected_url,
+            )
+        )
+
+    return GroupedIssuesResponse(**grouped)
