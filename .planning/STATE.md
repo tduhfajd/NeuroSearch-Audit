@@ -5,30 +5,30 @@
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Аудит сайта → готовый PDF-отчёт с КП за один запуск
-**Current focus:** Phase 2 — Crawler
+**Current focus:** Phase 3 — Analyzer
 
 ## Current Position
 
-Phase: 2 of 7 (Crawler)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-02-26 — Выполнен plan 02-02 (JS fallback + robots/sitemap + pagespeed providers).
+Phase: 3 of 7 (Analyzer)
+Plan: 0 of 8 in current phase
+Status: Ready to execute
+Last activity: 2026-02-26 — Phase 2 завершена (crawler core, JS fallback, site checks, pagespeed providers, API/queue/DB integration).
 
-Progress: [███░░░░░░░] 28%
+Progress: [██░░░░░░░░] 28%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 9.0 minutes
-- Total execution time: 0.7 hours
+- Total plans completed: 6
+- Average duration: 8.8 minutes
+- Total execution time: 0.9 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation | 3/3 | 25 min | 8.3 min |
-| 2. Crawler | 2/3 | 20 min | 10 min |
+| 2. Crawler | 3/3 | 26 min | 8.7 min |
 | 3. Analyzer | 0/8 | - | - |
 | 4. AI Bridge | 0/7 | - | - |
 | 5. Dashboard | 0/6 | - | - |
@@ -42,14 +42,16 @@ Progress: [███░░░░░░░] 28%
 Решения логируются в PROJECT.md Key Decisions.
 Недавние решения, влияющие на текущую работу:
 
-- **Phase 2 crawler strategy** — queue-based orchestration, sitemap+homepage hybrid discovery, strict host default
-- **Extraction baseline** — title/h1/meta/canonical/robots/jsonld/links/word_count/inlinks_count implemented
-- **JS/checks/pagespeed baseline** — Playwright heuristic fallback, robots/sitemap checks, PageSpeed API primary + Lighthouse fallback
+- **Crawler execution** — queue-based orchestration with explicit crawl job lifecycle
+- **Discovery & extraction** — sitemap+homepage hybrid discovery, strict host default, required field extraction complete
+- **JS + checks + pagespeed** — heuristic Playwright fallback, robots/sitemap checks, provider abstraction (API/fallback)
+- **Persistence** — batched idempotent upsert by (`audit_id`, `url`) and crawl metadata in `audits.meta`
 
 ### Pending Todos
 
-- Интегрировать API/RQ/DB persistence end-to-end (plan 02-03)
-- Получить Google PageSpeed API key перед production-like прогонами CRL-05
+- Начать реализацию Phase 3: rule-based analyzer (ANA-01..08)
+- Подготовить production-like RQ/Redis worker wiring (если требуется для следующего этапа)
+- Получить Google PageSpeed API key для точного CRL-05 на реальных прогонах
 
 ### Blockers/Concerns
 
@@ -60,5 +62,5 @@ Progress: [███░░░░░░░] 28%
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Завершён plan 02-02, следующий шаг — plan 02-03 (API + queue + persistence integration)
-Resume file: .planning/phases/02-crawler/02-02-SUMMARY.md
+Stopped at: Phase 2 complete, next step — Phase 3 discuss/plan
+Resume file: .planning/phases/02-crawler/02-03-SUMMARY.md
