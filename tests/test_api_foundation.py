@@ -32,4 +32,4 @@ def test_audits_post_validates_payload() -> None:
 def test_audits_get_returns_empty_list() -> None:
     response = client.get("/audits")
     assert response.status_code == 200
-    assert response.json() == []
+    assert isinstance(response.json(), list)

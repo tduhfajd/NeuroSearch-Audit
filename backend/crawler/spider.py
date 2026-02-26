@@ -162,3 +162,28 @@ class SiteCrawler:
             timed_out=timed_out,
             crawl_errors=crawl_errors,
         )
+
+
+def crawl_site(
+    *,
+    root_url: str,
+    fetcher: Callable[[str], PageFetchResult],
+    crawl_depth: int = 200,
+    max_runtime_seconds: float = 120.0,
+    include_subdomains: bool = False,
+    retries: int = 2,
+    backoff_seconds: float = 0.1,
+    sitemap_urls: list[str] | None = None,
+    homepage_links: list[str] | None = None,
+) -> CrawlOutput:
+    crawler = SiteCrawler(
+        CrawlConfig(
+            root_url=root_url,
+            crawl_depth=crawl_depth,
+            max_runtime_seconds=max_runtime_seconds,
+            include_subdomains=include_subdomains,
+            retries=retries,
+            backoff_seconds=backoff_seconds,
+        )
+    )
+    return crawler.crawl(fetcher=fetcher, sitemap_urls=sitemap_urls, homepage_links=homepage_links)

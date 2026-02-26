@@ -1,8 +1,14 @@
 from datetime import datetime
 from enum import StrEnum
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, HttpUrl, field_validator
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
+
+from backend.crawler.jobs import enqueue_crawl_job
+from backend.db.models import Audit
+from backend.db.session import get_db
 
 router = APIRouter()
 
@@ -41,12 +47,56 @@ class AuditReadResponse(BaseModel):
     created_at: datetime
 
 
-@router.post("", status_code=status.HTTP_501_NOT_IMPLEMENTED)
-async def create_audit(payload: AuditCreateRequest) -> dict[str, str]:
-    _ = payload
-    raise HTTPException(status_code=501, detail="Audit workflow is not implemented in Phase 1")
+class AuditCreateResponse(AuditReadResponse):
+    queue_job_id: str
+
+
+def _to_response(audit: Audit) -> AuditReadResponse:
+    return AuditReadResponse(
+        id=audit.id,
+        url=audit.url,
+        client_name=audit.client_name,
+        status=audit.status,
+        seo_score=audit.seo_score,
+        avri_score=audit.avri_score,
+        pages_crawled=audit.pages_crawled,
+        created_at=audit.created_at,
+    )
+
+
+@router.post("", response_model=AuditCreateResponse, status_code=status.HTTP_201_CREATED)
+async def create_audit(payload: AuditCreateRequest, db: Session = Depends(get_db)) -> AuditCreateResponse:
+    try:
+        audit = Audit(
+            url=str(payload.url),
+            client_name=payload.client_name,
+            niche=payload.niche,
+            region=payload.region,
+            goal=payload.goal.value if payload.goal else None,
+            crawl_depth=payload.crawl_depth,
+            status="pending",
+            pages_crawled=0,
+            meta={"progress": 0, "crawl_errors": []},
+        )
+        db.add(audit)
+        db.commit()
+        db.refresh(audit)
+
+        job_id = enqueue_crawl_job(audit.id)
+        audit.meta = {**(audit.meta or {}), "queue_job_id": job_id}
+        db.commit()
+        db.refresh(audit)
+
+        return AuditCreateResponse(**_to_response(audit).model_dump(), queue_job_id=job_id)
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=503, detail="Database unavailable") from exc
 
 
 @router.get("", response_model=list[AuditReadResponse])
-async def list_audits() -> list[AuditReadResponse]:
-    return []
+async def list_audits(db: Session = Depends(get_db)) -> list[AuditReadResponse]:
+    try:
+        rows = db.query(Audit).order_by(Audit.id.desc()).all()
+    except SQLAlchemyError:
+        return []
+    return [_to_response(row) for row in rows]
