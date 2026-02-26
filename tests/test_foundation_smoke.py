@@ -3,7 +3,6 @@ from fastapi.testclient import TestClient
 from backend.main import create_app
 
 
-
 def test_app_initializes_and_exposes_core_routes() -> None:
     client = TestClient(create_app())
 
