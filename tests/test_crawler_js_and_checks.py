@@ -55,6 +55,7 @@ def test_js_render_path_keeps_http_when_not_needed() -> None:
     assert result_html == http_html
     assert reason == "http-sufficient"
 
+
 from backend.crawler.pagespeed import (  # noqa: E402
     GooglePageSpeedProvider,
     HybridPageSpeedProvider,
@@ -71,7 +72,9 @@ def test_robots_and_sitemap_statuses_are_reported() -> None:
         "https://example.com/sitemap.xml": 404,
     }
 
-    status = check_robots_and_sitemap(base_url="https://example.com", fetch_status=lambda url: codes[url])
+    status = check_robots_and_sitemap(
+        base_url="https://example.com", fetch_status=lambda url: codes[url]
+    )
 
     assert status.robots_status == "ok"
     assert status.sitemap_status == "missing"
@@ -91,7 +94,9 @@ def test_pagespeed_api_primary_is_used_when_available() -> None:
     provider = HybridPageSpeedProvider(
         primary=GooglePageSpeedProvider(
             api_key="token",
-            requester=lambda _: {"lighthouseResult": {"categories": {"performance": {"score": 0.73}}}},
+            requester=lambda _: {
+                "lighthouseResult": {"categories": {"performance": {"score": 0.73}}}
+            },
         ),
         fallback=LighthouseProvider(runner=lambda _: "{}"),
     )

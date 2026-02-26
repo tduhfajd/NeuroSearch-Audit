@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import json
 import subprocess
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Protocol
+from typing import Protocol
 from urllib.parse import quote
 from urllib.request import urlopen
 
 
 class PageSpeedProvider(Protocol):
-    def get_score(self, url: str) -> float | None:
-        ...
+    def get_score(self, url: str) -> float | None: ...
 
 
 @dataclass(slots=True)
@@ -21,7 +21,9 @@ class PageSpeedResult:
 
 
 class GooglePageSpeedProvider:
-    def __init__(self, api_key: str | None = None, requester: Callable[[str], dict] | None = None) -> None:
+    def __init__(
+        self, api_key: str | None = None, requester: Callable[[str], dict] | None = None
+    ) -> None:
         self.api_key = api_key
         self.requester = requester or self._default_requester
 
@@ -73,11 +75,7 @@ class LighthouseProvider:
         try:
             payload = self.runner(url)
             data = json.loads(payload)
-            score = (
-                data.get("categories", {})
-                .get("performance", {})
-                .get("score")
-            )
+            score = data.get("categories", {}).get("performance", {}).get("score")
             if score is None:
                 return None
             return float(score) * 100

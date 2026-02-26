@@ -6,8 +6,7 @@ from typing import Protocol
 
 
 class HTMLRenderer(Protocol):
-    def render(self, url: str, timeout_ms: int = 15000) -> str:
-        ...
+    def render(self, url: str, timeout_ms: int = 15000) -> str: ...
 
 
 @dataclass(slots=True)
@@ -23,7 +22,7 @@ def should_use_playwright(html: str, url: str) -> RenderDecision:
     indicators = (
         "__NEXT_DATA__" in html
         or "data-reactroot" in html
-        or "id=\"app\"" in html
+        or 'id="app"' in html
         or "id='app'" in html
     )
 
