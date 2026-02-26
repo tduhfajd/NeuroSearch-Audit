@@ -261,8 +261,12 @@ class BrokenLinksRule:
                     IssueCandidate(
                         rule_id=self.rule_id,
                         title="Битая страница в обходе",
-                        description="Страница возвращает HTTP 4xx/5xx и ухудшает техническое качество.",
-                        recommendation="Исправьте URL или настройте корректный редирект на рабочую страницу.",
+                        description=(
+                            "Страница возвращает HTTP 4xx/5xx и ухудшает техническое качество."
+                        ),
+                        recommendation=(
+                            "Исправьте URL или настройте корректный редирект на рабочую страницу."
+                        ),
                         affected_url=page.url,
                         page_id=page.id,
                     )
@@ -280,7 +284,9 @@ class BrokenLinksRule:
                             rule_id=self.rule_id,
                             title="Ошибка обхода ссылки",
                             description="Во время краулинга зафиксирована ошибка перехода по URL.",
-                            recommendation="Проверьте проблемные ссылки и устраните источники ошибок.",
+                            recommendation=(
+                                "Проверьте проблемные ссылки и устраните источники ошибок."
+                            ),
                             affected_url=url,
                         )
                     )
@@ -294,7 +300,9 @@ class BrokenLinksRule:
                                 rule_id=self.rule_id,
                                 title="Длинная цепочка редиректов",
                                 description="Обнаружена цепочка редиректов длиной 3+ переходов.",
-                                recommendation="Сократите цепочку до одного редиректа на целевой URL.",
+                                recommendation=(
+                                    "Сократите цепочку до одного редиректа на целевой URL."
+                                ),
                                 affected_url=url,
                             )
                         )
@@ -336,7 +344,9 @@ class SchemaPresenceRule:
                     rule_id=self.rule_id,
                     title="Отсутствует обязательный Schema.org тип",
                     description=f"Не найден required schema type: {missing_type}.",
-                    recommendation=f"Добавьте JSON-LD блок типа {missing_type} на релевантных страницах.",
+                    recommendation=(
+                        f"Добавьте JSON-LD блок типа {missing_type} на релевантных страницах."
+                    ),
                     affected_url=None,
                 )
             )
@@ -373,7 +383,8 @@ class SchemaValidationRule:
                                     f"{missing_fields}."
                                 ),
                                 recommendation=(
-                                    f"Добавьте обязательные поля для {schema_type}: {missing_fields}."
+                                    f"Добавьте обязательные поля для {schema_type}: "
+                                    f"{missing_fields}."
                                 ),
                                 affected_url=page.url,
                                 page_id=page.id,
