@@ -10,24 +10,24 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 Phase: 1 of 7 (Foundation)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-26 — Выполнен план 01-01 (bootstrap + FastAPI skeleton + health checks).
+Last activity: 2026-02-26 — Выполнен план 01-02 (SQLAlchemy модели + Alembic baseline).
 
-Progress: [███░░░░░░░] 33%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 10 minutes
-- Total execution time: 0.2 hours
+- Total plans completed: 2
+- Average duration: 9.5 minutes
+- Total execution time: 0.3 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1. Foundation | 1/3 | 10 min | 10 min |
+| 1. Foundation | 2/3 | 19 min | 9.5 min |
 | 2. Crawler | 0/7 | - | - |
 | 3. Analyzer | 0/8 | - | - |
 | 4. AI Bridge | 0/7 | - | - |
@@ -46,11 +46,11 @@ Progress: [███░░░░░░░] 33%
 - **ChatGPT Playwright** — AI Bridge без API-ключа, через браузерную автоматизацию
 - **HTML + Tailwind + Alpine.js** — фронтенд без сборки, достаточно для single-user инструмента
 - **Foundation уточнение** — `/health` остаётся строгим контрактом `{"status":"ok"}`, `/health/db` отдельная диагностика
+- **DB baseline** — sync SQLAlchemy + `postgresql+psycopg`, миграция `20260226_0001` в head
 
 ### Pending Todos
 
-- Реализовать DB models + Alembic baseline (Phase 1, plan 01-02)
-- Обновить runbook и smoke-verification (Phase 1, plan 01-03)
+- Завершить runbook и smoke-verification (Phase 1, plan 01-03)
 - Получить Google PageSpeed API key перед Phase 2
 
 ### Blockers/Concerns
@@ -62,5 +62,5 @@ Progress: [███░░░░░░░] 33%
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Завершён plan 01-01, следующий шаг — plan 01-02 (модели БД и Alembic)
-Resume file: .planning/phases/01-foundation/01-01-SUMMARY.md
+Stopped at: Завершён plan 01-02, следующий шаг — plan 01-03 (runbook + smoke verification)
+Resume file: .planning/phases/01-foundation/01-02-SUMMARY.md
