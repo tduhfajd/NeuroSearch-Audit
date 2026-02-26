@@ -10,25 +10,25 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 Phase: 2 of 7 (Crawler)
-Plan: 0 of 7 in current phase
-Status: Ready to execute
-Last activity: 2026-02-26 — Phase 1 завершена (bootstrap, DB schema/migrations, FastAPI skeleton, runbook, smoke checks).
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-02-26 — Выполнен plan 02-01 (crawler core + extraction).
 
-Progress: [█░░░░░░░░░] 14%
+Progress: [██░░░░░░░░] 22%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 8.3 minutes
-- Total execution time: 0.4 hours
+- Total plans completed: 4
+- Average duration: 9.5 minutes
+- Total execution time: 0.6 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation | 3/3 | 25 min | 8.3 min |
-| 2. Crawler | 0/7 | - | - |
+| 2. Crawler | 1/3 | 13 min | 13 min |
 | 3. Analyzer | 0/8 | - | - |
 | 4. AI Bridge | 0/7 | - | - |
 | 5. Dashboard | 0/6 | - | - |
@@ -42,14 +42,15 @@ Progress: [█░░░░░░░░░] 14%
 Решения логируются в PROJECT.md Key Decisions.
 Недавние решения, влияющие на текущую работу:
 
-- **Foundation API contracts** — `/health` фиксирован как `{"status":"ok"}`, `/health/db` отдельная диагностика
-- **DB baseline** — sync SQLAlchemy + `postgresql+psycopg`, Alembic head `20260226_0001`
-- **Local infra path** — Homebrew как основной, Docker Compose как fallback
+- **Phase 2 crawler strategy** — queue-based orchestration, sitemap+homepage hybrid discovery, strict host default
+- **Extraction baseline** — title/h1/meta/canonical/robots/jsonld/links/word_count/inlinks_count implemented
+- **Resilience defaults** — crawl depth + runtime timeout + retry/backoff
 
 ### Pending Todos
 
-- Начать реализацию Phase 2: crawler (Scrapy + парсинг полей страниц)
-- Получить Google PageSpeed API key перед задачами CRL-05
+- Реализовать JS rendering + robots/sitemap checks + pagespeed providers (plan 02-02)
+- Интегрировать API/RQ/DB persistence end-to-end (plan 02-03)
+- Получить Google PageSpeed API key перед production-like прогонами CRL-05
 
 ### Blockers/Concerns
 
@@ -60,5 +61,5 @@ Progress: [█░░░░░░░░░] 14%
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Phase 1 complete, next step — Phase 2 planning/execution
-Resume file: .planning/phases/01-foundation/01-03-SUMMARY.md
+Stopped at: Завершён plan 02-01, следующий шаг — plan 02-02 (JS + site checks + pagespeed)
+Resume file: .planning/phases/02-crawler/02-01-SUMMARY.md
