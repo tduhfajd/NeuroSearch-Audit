@@ -55,7 +55,7 @@ def _seed_advanced_dataset(db: Session) -> tuple[Audit, list[Page]]:
             meta_description="x" * 130,
             canonical="https://example.com/404-page",
             robots_meta="index,follow",
-            json_ld=[],
+            json_ld=[{"@type": "Article"}],
             word_count=90,
             inlinks_count=1,
             crawled_at=datetime.utcnow(),
@@ -82,3 +82,34 @@ def test_ana05_detects_broken_pages_crawl_errors_and_redirect_chain() -> None:
     assert "https://example.com/404-page" in urls
     assert "https://example.com/broken" in urls
     assert "https://example.com/old" in urls
+
+
+def test_ana06_flags_missing_required_schema_types() -> None:
+    db = make_db_session()
+    try:
+        audit, pages = _seed_advanced_dataset(db)
+        result = execute_analysis(audit=audit, pages=pages)
+    finally:
+        db.close()
+
+    ana06 = [item for item in result.issue_candidates if item.rule_id == "ANA-06"]
+    descriptions = {item.description for item in ana06}
+
+    assert any("FAQPage" in text for text in descriptions)
+    assert any("HowTo" in text for text in descriptions)
+    assert any("BreadcrumbList" in text for text in descriptions)
+
+
+def test_ana07_flags_missing_required_schema_fields() -> None:
+    db = make_db_session()
+    try:
+        audit, pages = _seed_advanced_dataset(db)
+        result = execute_analysis(audit=audit, pages=pages)
+    finally:
+        db.close()
+
+    ana07 = [item for item in result.issue_candidates if item.rule_id == "ANA-07"]
+    assert any(item.affected_url == "https://example.com/ok" for item in ana07)
+    assert any(item.affected_url == "https://example.com/404-page" for item in ana07)
+    assert any("Organization" in item.description for item in ana07)
+    assert any("Article" in item.description for item in ana07)
