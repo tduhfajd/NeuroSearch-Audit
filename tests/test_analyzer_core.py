@@ -2,12 +2,17 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from fastapi.testclient import TestClient
+from sqlalchemy import func, select
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from backend.analyzer.rules import IssueCandidate, get_rule_registry
 from backend.analyzer.service import execute_analysis
-from backend.db.models import Audit, Base, Page
+from backend.db import session as db_session_module
+from backend.db.models import Audit, Base, Issue, Page
+from backend.main import app
 
 
 def make_db_session() -> Session:
@@ -214,3 +219,105 @@ def test_ana04_flags_missing_and_cross_domain_canonical() -> None:
     ana04_urls = {item.affected_url for item in result.issue_candidates if item.rule_id == "ANA-04"}
     assert "https://example.com/blocked/landing" in ana04_urls
     assert "https://example.com/ok" in ana04_urls
+
+
+def _build_test_client_and_session() -> tuple[TestClient, sessionmaker]:
+    engine = create_engine(
+        "sqlite+pysqlite:///:memory:",
+        future=True,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    Base.metadata.create_all(engine)
+    session_local = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+
+    def override_get_db():
+        db = session_local()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    app.dependency_overrides[db_session_module.get_db] = override_get_db
+    return TestClient(app), session_local
+
+
+def _seed_api_dataset(session_local: sessionmaker) -> int:
+    with session_local() as db:
+        audit = Audit(
+            url="https://example.com",
+            status="completed",
+            crawl_depth=100,
+            pages_crawled=2,
+            meta={"robots_disallow_patterns": ["/blocked"]},
+        )
+        db.add(audit)
+        db.commit()
+        db.refresh(audit)
+
+        pages = [
+            Page(
+                audit_id=audit.id,
+                url="https://example.com/noindex",
+                status_code=200,
+                title="Short",
+                h1="Same H1",
+                meta_description="too short",
+                canonical="",
+                robots_meta="noindex,nofollow",
+                json_ld=[],
+                word_count=100,
+                inlinks_count=1,
+                crawled_at=datetime.utcnow(),
+            ),
+            Page(
+                audit_id=audit.id,
+                url="https://example.com/dup",
+                status_code=200,
+                title="Short",
+                h1="Same H1",
+                meta_description="ok " * 50,
+                canonical="https://example.com/dup",
+                robots_meta="index,follow",
+                json_ld=[],
+                word_count=120,
+                inlinks_count=1,
+                crawled_at=datetime.utcnow(),
+            ),
+        ]
+        db.add_all(pages)
+        db.commit()
+        return audit.id
+
+
+def test_analyze_endpoint_creates_issues() -> None:
+    client, session_local = _build_test_client_and_session()
+    try:
+        audit_id = _seed_api_dataset(session_local)
+        response = client.post(f"/audits/{audit_id}/analyze")
+        body = response.json()
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert body["audit_id"] == audit_id
+    assert body["issues_created"] > 0
+    assert set(body["by_priority"]) == {"P0", "P1", "P2", "P3"}
+
+
+def test_analyze_endpoint_is_idempotent_on_rerun() -> None:
+    client, session_local = _build_test_client_and_session()
+    try:
+        audit_id = _seed_api_dataset(session_local)
+        first = client.post(f"/audits/{audit_id}/analyze").json()
+        second = client.post(f"/audits/{audit_id}/analyze").json()
+
+        with session_local() as db:
+            issue_rows = db.execute(
+                select(func.count()).select_from(Issue).where(Issue.audit_id == audit_id)
+            ).scalar_one()
+    finally:
+        app.dependency_overrides.clear()
+
+    assert first["issues_created"] == second["issues_created"]
+    assert issue_rows == second["issues_created"]

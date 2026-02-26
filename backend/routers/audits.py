@@ -6,6 +6,7 @@ from pydantic import BaseModel, HttpUrl, field_validator
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from backend.analyzer.service import analyze_audit
 from backend.crawler.jobs import enqueue_crawl_job
 from backend.db.models import Audit
 from backend.db.session import get_db
@@ -49,6 +50,12 @@ class AuditReadResponse(BaseModel):
 
 class AuditCreateResponse(AuditReadResponse):
     queue_job_id: str
+
+
+class AnalyzeAuditResponse(BaseModel):
+    audit_id: int
+    issues_created: int
+    by_priority: dict[str, int]
 
 
 def _to_response(audit: Audit) -> AuditReadResponse:
@@ -103,3 +110,23 @@ async def list_audits(db: Session = Depends(get_db)) -> list[AuditReadResponse]:
     except SQLAlchemyError:
         return []
     return [_to_response(row) for row in rows]
+
+
+@router.post("/{audit_id}/analyze", response_model=AnalyzeAuditResponse)
+async def analyze_audit_endpoint(
+    audit_id: int,
+    db: Session = Depends(get_db),  # noqa: B008
+) -> AnalyzeAuditResponse:
+    try:
+        summary = analyze_audit(db, audit_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail="Audit not found") from exc
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(status_code=503, detail="Database unavailable") from exc
+
+    return AnalyzeAuditResponse(
+        audit_id=summary.audit_id,
+        issues_created=summary.issues_created,
+        by_priority=summary.by_priority,
+    )
