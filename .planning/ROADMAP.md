@@ -7,7 +7,7 @@
 ## Phases
 
 - [x] **Phase 1: Foundation** — проектная структура, БД схема, базовый FastAPI сервер
-- [ ] **Phase 2: Crawler** — краулер сайта (HTTP + Playwright), сбор HTML/мета/schema
+- [x] **Phase 2: Crawler** — краулер сайта (HTTP + Playwright), сбор HTML/мета/schema
 - [ ] **Phase 3: Analyzer** — rule-based анализатор (20+ проверок), скоринг, карта проблем
 - [ ] **Phase 4: AI Bridge** — Playwright → ChatGPT Plus, AI-оценка страниц, AVRI
 - [ ] **Phase 5: Dashboard** — веб-интерфейс: запуск аудита, просмотр результатов, прогресс
@@ -48,16 +48,16 @@ Plans:
   3. `robots.txt` и `sitemap.xml` проверены и статус записан в `audits.meta`
   4. JS-страница (контент в DOM через React/Vue) корректно краулится через Playwright
   5. PageSpeed score собран для топ-10 страниц по inlinks_count
-**Plans**: TBD
+**Plans**: Complete
 
 Plans:
-- [ ] 02-01: Базовый HTTP краулер — Scrapy spider, очередь URL, depth limit
-- [ ] 02-02: Парсинг страницы — title, h1, meta, canonical, robots meta, ссылки
-- [ ] 02-03: Парсинг JSON-LD — извлечение всех schema.org блоков
-- [ ] 02-04: Playwright интеграция — headless Chromium для JS-сайтов
-- [ ] 02-05: robots.txt + sitemap.xml checker
-- [ ] 02-06: PageSpeed API / Lighthouse CLI для топ-10 страниц
-- [ ] 02-07: Сохранение результатов в PostgreSQL (bulk insert)
+- [x] 02-01: Базовый HTTP краулер — Scrapy spider, очередь URL, depth limit
+- [x] 02-02: Парсинг страницы — title, h1, meta, canonical, robots meta, ссылки
+- [x] 02-03: Парсинг JSON-LD — извлечение всех schema.org блоков
+- [x] 02-04: Playwright интеграция — headless Chromium для JS-сайтов
+- [x] 02-05: robots.txt + sitemap.xml checker
+- [x] 02-06: PageSpeed API / Lighthouse CLI для топ-10 страниц
+- [x] 02-07: Сохранение результатов в PostgreSQL (bulk insert)
 
 ---
 
@@ -182,7 +182,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete | 2026-02-26 |
-| 2. Crawler | 0/7 | Not started | - |
+| 2. Crawler | 7/7 | Complete | 2026-02-26 |
 | 3. Analyzer | 0/8 | Not started | - |
 | 4. AI Bridge | 0/7 | Not started | - |
 | 5. Dashboard | 0/6 | Not started | - |
