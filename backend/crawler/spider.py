@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import time
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable
 
 from backend.crawler.parsers import parse_page_content
 from backend.crawler.url_filters import is_in_scope, normalize_url
@@ -75,7 +75,9 @@ class SiteCrawler:
             normalized = normalize_url(candidate)
             if normalized in seen:
                 continue
-            if not is_in_scope(normalized, self.config.normalized_root_url, self.config.include_subdomains):
+            if not is_in_scope(
+                normalized, self.config.normalized_root_url, self.config.include_subdomains
+            ):
                 continue
             seen.add(normalized)
             dedup.append(normalized)
@@ -117,7 +119,9 @@ class SiteCrawler:
                         time.sleep(self.config.backoff_seconds * (attempt + 1))
 
             if fetch_result is None:
-                crawl_errors.append({"url": current_url, "error": str(last_error or "fetch_failed")})
+                crawl_errors.append(
+                    {"url": current_url, "error": str(last_error or "fetch_failed")}
+                )
                 visited.add(current_url)
                 continue
 

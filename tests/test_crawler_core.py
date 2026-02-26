@@ -67,7 +67,9 @@ def test_limits_stop_crawl_by_runtime_timeout() -> None:
 
 
 def test_scope_records_retry_error_after_retries() -> None:
-    crawler = SiteCrawler(CrawlConfig(root_url="https://example.com", retries=2, backoff_seconds=0.0))
+    crawler = SiteCrawler(
+        CrawlConfig(root_url="https://example.com", retries=2, backoff_seconds=0.0)
+    )
 
     def broken_fetcher(url: str) -> PageFetchResult:
         raise RuntimeError(f"failed for {url}")
