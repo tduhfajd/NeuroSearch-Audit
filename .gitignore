@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.venv/
+
+# Tooling
+.ruff_cache/
+
+# Environment / secrets
+.env
+chatgpt_session/storage_state.json
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Runtime files
+*.log
+reports/output/
