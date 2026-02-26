@@ -151,7 +151,7 @@ def test_ai_analyze_top10_pages_ai_scores_persisted(monkeypatch: pytest.MonkeyPa
             ]
         )
 
-        summary = run_ai_analyze(db, audit_id, transport=transport)
+        summary = run_ai_analyze(db, audit_id, transport=transport, min_interval_seconds=0.0)
 
         pages = (
             db.query(Page)
@@ -185,7 +185,7 @@ def test_ai_analyze_pages_ai_scores_parse_error_payload(monkeypatch: pytest.Monk
         audit_id = _seed_audit_with_pages(db, count=1)
         transport = FakeTransport(responses=["bad", "still bad", "again bad"])
 
-        summary = run_ai_analyze(db, audit_id, transport=transport)
+        summary = run_ai_analyze(db, audit_id, transport=transport, min_interval_seconds=0.0)
         page = db.query(Page).filter(Page.audit_id == audit_id).one()
 
     assert summary.errors == [f"parse_error:{page.url}"]
@@ -208,7 +208,7 @@ def test_session_expired_raises_reauth_required(monkeypatch: pytest.MonkeyPatch)
     with session_local() as db:
         audit_id = _seed_audit_with_pages(db, count=1)
         with pytest.raises(ReauthRequiredError):
-            run_ai_analyze(db, audit_id, transport=FakeTransport(["{}"]))
+            run_ai_analyze(db, audit_id, transport=FakeTransport(["{}"]), min_interval_seconds=0.0)
 
 
 def test_reauth_required_endpoint_returns_409(monkeypatch: pytest.MonkeyPatch) -> None:

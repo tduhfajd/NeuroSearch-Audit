@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
@@ -17,10 +19,15 @@ from backend.analyzer.ai_bridge_session import (
     load_storage_state,
     setup_session_state,
 )
+from backend.analyzer.scoring import calculate_avri_score
 from backend.db.models import Audit, Page
 
 
 class ReauthRequiredError(RuntimeError):
+    pass
+
+
+class RateLimitError(RuntimeError):
     pass
 
 
@@ -96,8 +103,8 @@ def _top_pages_for_ai(db: Session, audit_id: int, limit: int = 10) -> list[Page]
     )
 
 
-def _calculate_avri_from_pages(pages: list[Page]) -> float | None:
-    values: list[dict[str, float]] = []
+def _extract_metric_rows(pages: list[Page]) -> list[dict[str, float]]:
+    metric_rows: list[dict[str, float]] = []
     for page in pages:
         payload = page.ai_scores or {}
         if not isinstance(payload, dict):
@@ -106,24 +113,29 @@ def _calculate_avri_from_pages(pages: list[Page]) -> float | None:
         if not isinstance(scores, dict):
             continue
         try:
-            metric = {key: float(scores[key]) for key in METRIC_KEYS}
-        except Exception:  # noqa: BLE001
+            metric_rows.append({key: float(scores[key]) for key in METRIC_KEYS})
+        except (TypeError, ValueError, KeyError):
             continue
-        values.append(metric)
+    return metric_rows
 
-    if not values:
-        return None
 
-    avg = {key: sum(item[key] for item in values) / len(values) for key in METRIC_KEYS}
-    avri_10 = (
-        avg["answer_format"] * 0.25
-        + avg["structure_density"] * 0.20
-        + avg["definition_coverage"] * 0.20
-        + avg["authority_signals"] * 0.20
-        + avg["schema_need"] * 0.15
-    )
-    score = max(0.0, min(100.0, avri_10 * 10))
-    return round(score, 2)
+def _send_with_backoff(
+    send_prompt: Callable[[str], str],
+    prompt: str,
+    *,
+    max_retries: int,
+    sleep_func: Callable[[float], None],
+    initial_backoff_seconds: float = 2.0,
+) -> str:
+    delay = initial_backoff_seconds
+    for attempt in range(max_retries + 1):
+        try:
+            return send_prompt(prompt)
+        except RateLimitError:
+            if attempt >= max_retries:
+                raise
+            sleep_func(delay)
+            delay *= 2.0
 
 
 def run_ai_analyze(
@@ -132,6 +144,10 @@ def run_ai_analyze(
     *,
     transport: ChatGPTTransport,
     storage_state_path: Path = DEFAULT_STORAGE_STATE_PATH,
+    min_interval_seconds: float = 15.0,
+    max_rate_limit_retries: int = 2,
+    sleep_func: Callable[[float], None] = time.sleep,
+    time_func: Callable[[], float] = time.monotonic,
 ) -> AIAnalyzeSummary:
     audit = db.get(Audit, audit_id)
     if audit is None:
@@ -143,10 +159,44 @@ def run_ai_analyze(
 
     pages = _top_pages_for_ai(db, audit_id=audit_id, limit=10)
     errors: list[str] = []
+    last_prompt_time: float | None = None
 
     for page in pages:
+        if last_prompt_time is not None:
+            elapsed = time_func() - last_prompt_time
+            wait_seconds = min_interval_seconds - elapsed
+            if wait_seconds > 0:
+                sleep_func(wait_seconds)
+
         prompt = build_page_prompt(page)
-        parsed_result = parse_with_retries(transport.send_prompt, prompt, max_attempts=3)
+        try:
+            parsed_result = parse_with_retries(
+                lambda current_prompt: _send_with_backoff(
+                    transport.send_prompt,
+                    current_prompt,
+                    max_retries=max_rate_limit_retries,
+                    sleep_func=sleep_func,
+                ),
+                prompt,
+                max_attempts=3,
+            )
+        except RateLimitError:
+            page.ai_scores = {
+                "scores": None,
+                "recommendations": None,
+                "raw_response": None,
+                "diagnostics": {
+                    "attempts": max_rate_limit_retries + 1,
+                    "valid_json": False,
+                    "error": "rate_limit",
+                },
+                "status": "rate_limit_error",
+            }
+            errors.append(f"rate_limit_error:{page.url}")
+            last_prompt_time = time_func()
+            continue
+
+        last_prompt_time = time_func()
         if parsed_result.diagnostics["valid_json"]:
             scores = {k: parsed_result.parsed[k] for k in METRIC_KEYS}
             page.ai_scores = {
@@ -165,7 +215,7 @@ def run_ai_analyze(
             }
             errors.append(f"parse_error:{page.url}")
 
-    avri = _calculate_avri_from_pages(pages)
+    avri = calculate_avri_score(_extract_metric_rows(pages))
     audit.avri_score = avri
     db.commit()
 
