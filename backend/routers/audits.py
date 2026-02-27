@@ -143,6 +143,17 @@ async def list_audits(db: Session = Depends(get_db)) -> list[AuditReadResponse]:
     return [_to_response(row) for row in rows]
 
 
+@router.get("/{audit_id}", response_model=AuditReadResponse)
+async def get_audit(
+    audit_id: int,
+    db: Session = Depends(get_db),  # noqa: B008
+) -> AuditReadResponse:
+    audit = db.get(Audit, audit_id)
+    if audit is None:
+        raise HTTPException(status_code=404, detail="Audit not found")
+    return _to_response(audit)
+
+
 @router.post("/{audit_id}/analyze", response_model=AnalyzeAuditResponse)
 async def analyze_audit_endpoint(
     audit_id: int,
