@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>Коммерческое предложение</title>
+  </head>
+  <body>
+    <h1>Коммерческое предложение</h1>
+    <p>Клиент: {{ audit.client_name or audit.url }}</p>
+
+    <section>
+      <h2>Выбранный пакет</h2>
+      <p>{{ package.package_name }}</p>
+      <p>{{ package.rationale }}</p>
+    </section>
+
+    <section>
+      <h2>Объем работ</h2>
+      <ul>
+        {% for item in work_scope %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section>
+      <h2>Ожидаемый эффект</h2>
+      <p>{{ expected_impact }}</p>
+    </section>
+  </body>
+</html>
+
