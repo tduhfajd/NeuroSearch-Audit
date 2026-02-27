@@ -145,6 +145,7 @@ def test_content_site_full_chain_smoke_generates_pdf(
     assert create_response.status_code == 201
     assert analyze_response.status_code == 200
     assert ai_response.status_code == 200
+    assert ai_response.json()["status"] in {"ok", "partial"}
     assert report_response.status_code == 200
     assert report_response.content.startswith(b"%PDF")
 
@@ -188,6 +189,7 @@ def test_js_heavy_full_chain_smoke_keeps_non_fatal_behavior_js_heavy(
     assert create_response.status_code == 201
     assert analyze_response.status_code == 200
     assert ai_response.status_code == 200
+    assert ai_response.json()["status"] in {"ok", "partial"}
     assert report_response.status_code == 200
     assert audit is not None
     assert audit.meta["timed_out"] is True
