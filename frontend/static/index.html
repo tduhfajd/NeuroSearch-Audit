@@ -171,12 +171,48 @@
 
       <section x-show="view === 'progress'" x-cloak class="rounded-2xl border border-slate-200 bg-white p-6">
         <h2 class="text-xl font-semibold">Прогресс аудита</h2>
-        <p class="mt-2 text-sm text-slate-600">Сюда будет подключен polling статуса.</p>
+        <template x-if="!auditId">
+          <p class="mt-2 text-sm text-slate-600">Выберите аудит или запустите новый.</p>
+        </template>
+        <template x-if="auditId">
+          <div class="mt-4 space-y-3">
+            <p class="text-sm text-slate-700">
+              Аудит #<span x-text="auditId"></span>,
+              статус: <span class="font-semibold" x-text="statusLabel(progressState.status)"></span>
+            </p>
+            <div class="h-3 w-full overflow-hidden rounded-full bg-slate-200">
+              <div class="h-full bg-slate-900 transition-all duration-300" :style="`width: ${progressState.progress}%`"></div>
+            </div>
+            <p class="text-sm text-slate-600">
+              Прогресс: <span x-text="progressState.progress"></span>% ·
+              Страниц: <span x-text="progressState.pages_crawled"></span>
+            </p>
+            <p x-show="progressState.errors.length > 0" class="text-sm text-rose-700">
+              Ошибки: <span x-text="progressState.errors.join(', ')"></span>
+            </p>
+          </div>
+        </template>
       </section>
 
       <section x-show="view === 'result'" x-cloak class="rounded-2xl border border-slate-200 bg-white p-6">
         <h2 class="text-xl font-semibold">Результаты аудита</h2>
-        <p class="mt-2 text-sm text-slate-600">SEO Score, AVRI и карта проблем.</p>
+        <template x-if="!selectedAudit">
+          <p class="mt-2 text-sm text-slate-600">Выберите аудит из списка для просмотра результатов.</p>
+        </template>
+        <template x-if="selectedAudit">
+          <div class="mt-4 grid gap-4 md:grid-cols-2">
+            <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-600">Tech Health</h3>
+              <p class="mt-2 text-3xl font-bold text-slate-900" x-text="formatScore(selectedAudit.seo_score)"></p>
+              <p class="text-sm text-slate-600">SEO Score</p>
+            </article>
+            <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-600">AI Readiness</h3>
+              <p class="mt-2 text-3xl font-bold text-slate-900" x-text="formatScore(selectedAudit.avri_score)"></p>
+              <p class="text-sm text-slate-600">AVRI</p>
+            </article>
+          </div>
+        </template>
       </section>
     </div>
 
@@ -191,6 +227,17 @@
           listError: "",
           creatingAudit: false,
           createError: "",
+          aiAnalyzeLoading: false,
+          aiReauthRequired: false,
+          aiAnalyzeError: "",
+          selectedAudit: null,
+          progressPollTimer: null,
+          progressState: {
+            status: "pending",
+            progress: 0,
+            pages_crawled: 0,
+            errors: [],
+          },
           createForm: {
             url: "",
             niche: "",
@@ -206,6 +253,9 @@
           },
 
           setView(nextView, auditId = null) {
+            if (this.view === "progress" && nextView !== "progress") {
+              this.stopProgressPolling();
+            }
             this.view = nextView;
             this.auditId = auditId;
 
@@ -219,6 +269,13 @@
             const query = params.toString();
             const nextUrl = query ? `?${query}` : window.location.pathname;
             window.history.pushState({}, "", nextUrl);
+
+            if (nextView === "progress" && auditId) {
+              this.startProgressPolling(Number(auditId));
+            }
+            if (nextView === "result" && auditId) {
+              this.openAuditResult(Number(auditId));
+            }
           },
 
           syncFromUrl() {
@@ -227,6 +284,12 @@
             const allowedViews = ["list", "create", "progress", "result"];
             this.view = allowedViews.includes(nextView) ? nextView : "list";
             this.auditId = params.get("audit_id");
+            if (this.view === "progress" && this.auditId) {
+              this.startProgressPolling(Number(this.auditId));
+            }
+            if (this.view === "result" && this.auditId) {
+              this.openAuditResult(Number(this.auditId));
+            }
           },
 
           async loadAudits() {
@@ -272,7 +335,12 @@
           },
 
           openAuditResult(auditId) {
-            this.setView("result", auditId);
+            this.auditId = Number(auditId);
+            this.loadAuditDetails(this.auditId);
+            this.loadAuditIssues(this.auditId);
+            if (this.view !== "result") {
+              this.setView("result", auditId);
+            }
           },
 
           statusLabel(value) {
@@ -332,6 +400,50 @@
             } finally {
               this.creatingAudit = false;
             }
+          },
+
+          async loadAuditDetails(auditId) {
+            const response = await fetch(`/audits/${auditId}`);
+            if (!response.ok) {
+              throw new Error("Не удалось загрузить детали аудита");
+            }
+            this.selectedAudit = await response.json();
+          },
+
+          async loadAuditIssues(auditId) {
+            const response = await fetch(`/audits/${auditId}/issues`);
+            if (!response.ok) {
+              throw new Error("Не удалось загрузить карту проблем");
+            }
+            this.issueMap = await response.json();
+          },
+
+          stopProgressPolling() {
+            if (this.progressPollTimer) {
+              clearInterval(this.progressPollTimer);
+              this.progressPollTimer = null;
+            }
+          },
+
+          startProgressPolling(auditId) {
+            this.stopProgressPolling();
+            const tick = async () => {
+              const response = await fetch(`/audits/${auditId}/status`);
+              if (!response.ok) {
+                return;
+              }
+              const payload = await response.json();
+              this.progressState = payload;
+              if (["completed", "failed"].includes(payload.status)) {
+                this.stopProgressPolling();
+                if (payload.status === "completed") {
+                  this.setView("result", auditId);
+                }
+              }
+            };
+
+            tick();
+            this.progressPollTimer = setInterval(tick, 2000);
           },
         };
       }

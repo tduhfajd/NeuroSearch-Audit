@@ -95,3 +95,27 @@ def test_progress_redirect_after_successful_submit() -> None:
     html = _read_index()
 
     assert 'this.setView("progress", createdAudit.id)' in html
+
+
+def test_progress_polling_uses_status_endpoint_every_2_seconds() -> None:
+    html = _read_index()
+
+    assert "startProgressPolling" in html
+    assert "fetch(`/audits/${auditId}/status`)" in html
+    assert "setInterval(tick, 2000)" in html
+
+
+def test_status_transition_to_result_after_completion() -> None:
+    html = _read_index()
+
+    assert '["completed", "failed"].includes(payload.status)' in html
+    assert 'if (payload.status === "completed")' in html
+    assert 'this.setView("result", auditId)' in html
+
+
+def test_interval_cleanup_is_implemented_when_view_changes() -> None:
+    html = _read_index()
+
+    assert "stopProgressPolling" in html
+    assert "clearInterval(this.progressPollTimer)" in html
+    assert 'this.view === "progress" && nextView !== "progress"' in html
