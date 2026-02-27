@@ -47,10 +47,13 @@ def _extract_ai_text(db: Session, audit_id: int) -> tuple[str, list[str]]:
         if isinstance(value, str) and value.strip():
             recommendations.append(value.strip())
     if not recommendations:
-        raise ReportServiceError("ai_text_unavailable", "AI recommendations are required for reports")
+        raise ReportServiceError(
+            "ai_text_unavailable", "AI recommendations are required for reports"
+        )
 
     executive_summary = (
-        "AI-анализ подтверждает потенциал роста видимости при устранении приоритетных технических проблем."
+        "AI-анализ подтверждает потенциал роста видимости "
+        "при устранении приоритетных технических проблем."
     )
     return executive_summary, recommendations[:5]
 
@@ -121,4 +124,3 @@ def generate_report_artifact(
         file_name=file_name,
         generated_at=generated_at,
     )
-

@@ -76,7 +76,9 @@ def _seed_audit_data(session_local) -> int:
         return audit.id
 
 
-def test_service_generates_and_persists_report(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_service_generates_and_persists_report(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     session_local = _build_session()
     audit_id = _seed_audit_data(session_local)
     monkeypatch.setattr("backend.reports.service.session_health", lambda: (True, "ok"))
@@ -96,7 +98,9 @@ def test_service_generates_and_persists_report(monkeypatch: pytest.MonkeyPatch, 
     assert persisted[0].type == "full_report"
 
 
-def test_ai_text_strict_mode_requires_session(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_ai_text_strict_mode_requires_session(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     session_local = _build_session()
     audit_id = _seed_audit_data(session_local)
     monkeypatch.setattr(
@@ -106,7 +110,9 @@ def test_ai_text_strict_mode_requires_session(monkeypatch: pytest.MonkeyPatch, t
 
     with session_local() as db:
         with pytest.raises(ReportServiceError, match="storage state has no cookies") as exc:
-            generate_report_artifact(db, audit_id=audit_id, report_type="full_report", storage_dir=tmp_path)
+            generate_report_artifact(
+                db, audit_id=audit_id, report_type="full_report", storage_dir=tmp_path
+            )
 
     assert exc.value.code == "reauth_required"
 
@@ -119,14 +125,18 @@ def test_persistence_writes_distinct_records_for_report_types(
     monkeypatch.setattr("backend.reports.service.session_health", lambda: (True, "ok"))
 
     with session_local() as db:
-        generate_report_artifact(db, audit_id=audit_id, report_type="full_report", storage_dir=tmp_path)
+        generate_report_artifact(
+            db, audit_id=audit_id, report_type="full_report", storage_dir=tmp_path
+        )
         generate_report_artifact(db, audit_id=audit_id, report_type="kp", storage_dir=tmp_path)
         rows = db.query(Report).filter(Report.audit_id == audit_id).order_by(Report.id.asc()).all()
 
     assert [row.type for row in rows] == ["full_report", "kp"]
 
 
-def test_report_pdf_endpoint_returns_download(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_report_pdf_endpoint_returns_download(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     client, session_local = _build_client_and_session()
     monkeypatch.setattr("backend.reports.service.session_health", lambda: (True, "ok"))
     monkeypatch.setattr("backend.reports.service.REPORTS_DIR", tmp_path)
@@ -141,7 +151,9 @@ def test_report_pdf_endpoint_returns_download(monkeypatch: pytest.MonkeyPatch, t
     assert response.content.startswith(b"%PDF")
 
 
-def test_report_kp_endpoint_returns_download(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_report_kp_endpoint_returns_download(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     client, session_local = _build_client_and_session()
     monkeypatch.setattr("backend.reports.service.session_health", lambda: (True, "ok"))
     monkeypatch.setattr("backend.reports.service.REPORTS_DIR", tmp_path)
@@ -178,7 +190,9 @@ def test_reports_e2e_generation_persists_rows(
         pdf_response = client.get(f"/audits/{audit_id}/report/pdf")
         kp_response = client.get(f"/audits/{audit_id}/report/kp")
         with session_local() as db:
-            rows = db.query(Report).filter(Report.audit_id == audit_id).order_by(Report.id.asc()).all()
+            rows = (
+                db.query(Report).filter(Report.audit_id == audit_id).order_by(Report.id.asc()).all()
+            )
     finally:
         app.dependency_overrides.clear()
 

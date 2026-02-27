@@ -25,7 +25,9 @@ async def download_report_pdf(
                 status_code=409,
                 detail={"code": "reauth_required", "message": str(exc)},
             ) from exc
-        raise HTTPException(status_code=422, detail={"code": exc.code, "message": str(exc)}) from exc
+        raise HTTPException(
+            status_code=422, detail={"code": exc.code, "message": str(exc)}
+        ) from exc
 
     return FileResponse(
         path=str(artifact.file_path),
@@ -49,11 +51,12 @@ async def download_report_kp(
                 status_code=409,
                 detail={"code": "reauth_required", "message": str(exc)},
             ) from exc
-        raise HTTPException(status_code=422, detail={"code": exc.code, "message": str(exc)}) from exc
+        raise HTTPException(
+            status_code=422, detail={"code": exc.code, "message": str(exc)}
+        ) from exc
 
     return FileResponse(
         path=str(artifact.file_path),
         media_type="application/pdf",
         filename=artifact.file_name,
     )
-

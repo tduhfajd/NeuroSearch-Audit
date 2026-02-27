@@ -36,4 +36,3 @@ def choose_package(*, p0_count: int, p1_count: int, p2_count: int) -> PackageDec
         rationale="Преобладают улучшения невысокой критичности, достаточно стартового пакета.",
         trigger_metrics=trigger_metrics,
     )
-

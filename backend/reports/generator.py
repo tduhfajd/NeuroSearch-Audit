@@ -41,7 +41,10 @@ def _render_fallback(template_name: str, context: dict[str, Any]) -> str:
     <h2>Tech Health</h2><p>SEO Score: {audit.get("seo_score")}</p>
     <h2>AI Readiness</h2><p>AVRI: {audit.get("avri_score")}</p>
     <h2>Issue Map</h2>
-    <p>P0: {counts.get("P0", 0)} | P1: {counts.get("P1", 0)} | P2: {counts.get("P2", 0)} | P3: {counts.get("P3", 0)}</p>
+    <p>
+      P0: {counts.get("P0", 0)} | P1: {counts.get("P1", 0)} | P2: {counts.get("P2", 0)}
+      | P3: {counts.get("P3", 0)}
+    </p>
     <h2>Recommendations</h2>
     <ul>{"".join(f"<li>{item}</li>" for item in recommendations)}</ul>
   </body>
@@ -97,4 +100,3 @@ def html_to_pdf_bytes(html: str) -> bytes:
 def deterministic_filename(audit_id: int, report_type: str, now: datetime | None = None) -> str:
     ts = (now or datetime.now(UTC)).strftime("%Y%m%d_%H%M%S")
     return f"audit_{audit_id}_{report_type}_{ts}.pdf"
-

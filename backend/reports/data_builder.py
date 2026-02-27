@@ -68,7 +68,9 @@ def build_report_context(db: Session, audit_id: int) -> ReportContext:
         .all()
     )
 
-    by_priority: dict[str, list[dict[str, object]]] = {priority: [] for priority in ISSUE_PRIORITIES}
+    by_priority: dict[str, list[dict[str, object]]] = {
+        priority: [] for priority in ISSUE_PRIORITIES
+    }
     priority_counts: Counter[str] = Counter()
     for issue in issues:
         if issue.priority not in by_priority:
@@ -93,11 +95,12 @@ def build_report_context(db: Session, audit_id: int) -> ReportContext:
         },
         "facts": {
             "issues_total": len(issues),
-            "by_priority_count": {priority: priority_counts.get(priority, 0) for priority in ISSUE_PRIORITIES},
+            "by_priority_count": {
+                priority: priority_counts.get(priority, 0) for priority in ISSUE_PRIORITIES
+            },
             "top_pages_total": len(top_pages),
         },
         "issue_map": by_priority,
         "top_pages": [_page_to_payload(page) for page in top_pages],
     }
     return ReportContext(payload=payload)
-
