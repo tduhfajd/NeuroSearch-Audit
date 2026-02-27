@@ -228,9 +228,10 @@ def run_ai_analyze(
     audit.avri_score = avri
     db.commit()
 
+    status = "partial" if errors else "ok"
     return AIAnalyzeSummary(
         audit_id=audit_id,
-        status="ok",
+        status=status,
         processed_pages=len(pages),
         avri_score=avri,
         errors=errors,

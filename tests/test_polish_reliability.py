@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from backend.analyzer.ai_bridge import ReauthRequiredError
+from backend.analyzer.ai_bridge import RateLimitError, ReauthRequiredError, run_ai_analyze
 from backend.crawler.jobs import run_crawl_job
 from backend.crawler.playwright_utils import render_with_timeout_policy
 from backend.db import session as db_session_module
@@ -17,9 +17,30 @@ from backend.main import app
 from backend.reports.service import ReportServiceError
 
 
-class _RateLimitedTransport:
+class _BackoffTransport:
+    def __init__(self, *, fail_attempts: int, response: str) -> None:
+        self.fail_attempts = fail_attempts
+        self.response = response
+        self.calls = 0
+
     def send_prompt(self, prompt: str) -> str:  # noqa: ARG002
-        raise RuntimeError("rate limit")
+        self.calls += 1
+        if self.calls <= self.fail_attempts:
+            raise RateLimitError("rate limited")
+        return self.response
+
+
+class _SequencedTransport:
+    def __init__(self, responses: list[str | Exception]) -> None:
+        self.responses = responses
+        self.calls = 0
+
+    def send_prompt(self, prompt: str) -> str:  # noqa: ARG002
+        item = self.responses[self.calls]
+        self.calls += 1
+        if isinstance(item, Exception):
+            raise item
+        return item
 
 
 class _Clock:
@@ -108,6 +129,19 @@ def _seed_audit_with_pages(db: Session, *, page_count: int = 1) -> int:
         )
     db.commit()
     return audit.id
+
+
+def _valid_ai_json() -> str:
+    return (
+        "{"
+        '"answer_format": 8, '
+        '"structure_density": 7, '
+        '"definition_coverage": 6, '
+        '"authority_signals": 7, '
+        '"schema_need": 5, '
+        '"recommendations": "Actionable recommendation"'
+        "}"
+    )
 
 
 def test_error_contract_ai_http_mapping_includes_retryable(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -223,3 +257,62 @@ def test_retry_budget_limits_render_attempts() -> None:
     assert outcome.fallback_attempts == 6
     assert renderer.calls == 6
     assert renderer.timeouts == [50, 100, 50, 100, 50, 100]
+
+
+def test_rate_limit_backoff_sequence_is_exponential(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("backend.analyzer.ai_bridge.session_health", lambda _: (True, "ok"))
+    session_local = _build_session_local()
+    clock = _Clock()
+
+    with session_local() as db:
+        audit_id = _seed_audit_with_pages(db, page_count=1)
+        transport = _BackoffTransport(fail_attempts=2, response=_valid_ai_json())
+        summary = run_ai_analyze(
+            db,
+            audit_id,
+            transport=transport,
+            min_interval_seconds=0.0,
+            max_rate_limit_retries=2,
+            sleep_func=clock.sleep,
+            time_func=clock.now,
+        )
+
+    assert summary.status == "ok"
+    assert summary.errors == []
+    assert clock.sleeps == [2.0, 4.0]
+
+
+def test_non_fatal_rate_limit_continues_next_page(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("backend.analyzer.ai_bridge.session_health", lambda _: (True, "ok"))
+    session_local = _build_session_local()
+
+    with session_local() as db:
+        audit_id = _seed_audit_with_pages(db, page_count=2)
+        transport = _SequencedTransport(
+            responses=[
+                RateLimitError("rl-1"),
+                RateLimitError("rl-2"),
+                _valid_ai_json(),
+            ]
+        )
+        summary = run_ai_analyze(
+            db,
+            audit_id,
+            transport=transport,
+            min_interval_seconds=0.0,
+            max_rate_limit_retries=1,
+            sleep_func=lambda _: None,
+            time_func=lambda: 0.0,
+        )
+        pages = (
+            db.query(Page)
+            .filter(Page.audit_id == audit_id)
+            .order_by(Page.inlinks_count.desc(), Page.url.asc())
+            .all()
+        )
+
+    assert summary.status == "partial"
+    assert len(summary.errors) == 1
+    assert summary.errors[0].startswith("rate_limit_error:")
+    assert pages[0].ai_scores["status"] == "rate_limit_error"
+    assert pages[1].ai_scores["scores"]["answer_format"] == 8
