@@ -34,8 +34,64 @@
       </nav>
 
       <section x-show="view === 'list'" x-cloak class="rounded-2xl border border-slate-200 bg-white p-6">
-        <h2 class="text-xl font-semibold">Список аудитов</h2>
-        <p class="mt-2 text-sm text-slate-600">Здесь будет таблица с SEO/AVRI и статусом.</p>
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 class="text-xl font-semibold">Список аудитов</h2>
+          <button
+            type="button"
+            class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            @click="loadAudits()"
+          >
+            Обновить
+          </button>
+        </div>
+
+        <div class="mb-4 flex flex-wrap gap-2">
+          <template x-for="option in ['all', 'in-progress', 'completed', 'failed']" :key="option">
+            <button
+              type="button"
+              class="rounded-lg border px-3 py-2 text-sm"
+              :class="statusFilter === option ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 bg-white'"
+              @click="statusFilter = option"
+              x-text="statusFilterLabel(option)"
+            ></button>
+          </template>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <thead class="bg-slate-50 text-left text-slate-700">
+              <tr>
+                <th class="px-4 py-3 font-medium">Домен</th>
+                <th class="px-4 py-3 font-medium">Дата</th>
+                <th class="px-4 py-3 font-medium">SEO Score</th>
+                <th class="px-4 py-3 font-medium">AVRI</th>
+                <th class="px-4 py-3 font-medium">Статус</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+              <template x-for="audit in filteredAudits()" :key="audit.id">
+                <tr class="hover:bg-slate-50">
+                  <td class="px-4 py-3">
+                    <button type="button" class="text-left text-blue-700 underline" @click="openAuditResult(audit.id)">
+                      <span x-text="audit.url"></span>
+                    </button>
+                  </td>
+                  <td class="px-4 py-3" x-text="formatDate(audit.created_at)"></td>
+                  <td class="px-4 py-3" x-text="formatScore(audit.seo_score)"></td>
+                  <td class="px-4 py-3" x-text="formatScore(audit.avri_score)"></td>
+                  <td class="px-4 py-3">
+                    <span class="rounded-full px-2 py-1 text-xs font-medium" :class="statusBadgeClass(audit.status)">
+                      <span x-text="statusLabel(audit.status)"></span>
+                    </span>
+                  </td>
+                </tr>
+              </template>
+              <tr x-show="filteredAudits().length === 0">
+                <td colspan="5" class="px-4 py-6 text-center text-slate-500">Нет аудитов для выбранного фильтра</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section x-show="view === 'create'" x-cloak class="rounded-2xl border border-slate-200 bg-white p-6">
@@ -59,10 +115,15 @@
         return {
           view: "list",
           auditId: null,
+          audits: [],
+          statusFilter: "all",
+          loadingAudits: false,
+          listError: "",
 
           init() {
             this.syncFromUrl();
             window.addEventListener("popstate", () => this.syncFromUrl());
+            this.loadAudits();
           },
 
           setView(nextView, auditId = null) {
@@ -87,6 +148,81 @@
             const allowedViews = ["list", "create", "progress", "result"];
             this.view = allowedViews.includes(nextView) ? nextView : "list";
             this.auditId = params.get("audit_id");
+          },
+
+          async loadAudits() {
+            this.loadingAudits = true;
+            this.listError = "";
+            try {
+              const response = await fetch("/audits");
+              if (!response.ok) {
+                throw new Error("Не удалось загрузить список аудитов");
+              }
+              const payload = await response.json();
+              this.audits = Array.isArray(payload)
+                ? payload.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                : [];
+            } catch (error) {
+              this.listError = error instanceof Error ? error.message : "Ошибка загрузки списка";
+              this.audits = [];
+            } finally {
+              this.loadingAudits = false;
+            }
+          },
+
+          statusFilterLabel(value) {
+            if (value === "all") return "Все";
+            if (value === "in-progress") return "В работе";
+            if (value === "completed") return "Завершены";
+            return "С ошибкой";
+          },
+
+          filteredAudits() {
+            if (this.statusFilter === "all") {
+              return this.audits;
+            }
+            if (this.statusFilter === "in-progress") {
+              return this.audits.filter((audit) =>
+                ["pending", "crawling", "analyzing"].includes(audit.status),
+              );
+            }
+            if (this.statusFilter === "completed") {
+              return this.audits.filter((audit) => audit.status === "completed");
+            }
+            return this.audits.filter((audit) => audit.status === "failed");
+          },
+
+          openAuditResult(auditId) {
+            this.setView("result", auditId);
+          },
+
+          statusLabel(value) {
+            if (value === "pending") return "Ожидание";
+            if (value === "crawling") return "Краулинг";
+            if (value === "analyzing") return "Анализ";
+            if (value === "completed") return "Завершен";
+            if (value === "failed") return "Ошибка";
+            return value;
+          },
+
+          statusBadgeClass(value) {
+            if (["pending", "crawling", "analyzing"].includes(value)) {
+              return "bg-amber-100 text-amber-800";
+            }
+            if (value === "completed") {
+              return "bg-emerald-100 text-emerald-800";
+            }
+            return "bg-rose-100 text-rose-800";
+          },
+
+          formatDate(value) {
+            if (!value) return "—";
+            return new Date(value).toLocaleString("ru-RU");
+          },
+
+          formatScore(value) {
+            if (value === null || value === undefined) return "—";
+            return Number(value).toFixed(1);
           },
         };
       }

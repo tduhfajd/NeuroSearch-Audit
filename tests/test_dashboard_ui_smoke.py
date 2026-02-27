@@ -46,3 +46,29 @@ def test_alpine_is_used_for_state_routing() -> None:
     assert "function dashboardApp()" in html
     assert "syncFromUrl" in html
     assert "setView" in html
+
+
+def test_audit_list_contains_expected_table_markup() -> None:
+    html = _read_index()
+
+    assert "Список аудитов" in html
+    assert "loadAudits" in html
+    assert "filteredAudits" in html
+
+
+def test_filters_are_declared_for_operational_statuses() -> None:
+    html = _read_index()
+
+    assert "'all', 'in-progress', 'completed', 'failed'" in html
+    assert "statusFilter" in html
+    assert "statusFilterLabel" in html
+
+
+def test_columns_match_dashboard_list_contract() -> None:
+    html = _read_index()
+
+    assert "Домен" in html
+    assert "Дата" in html
+    assert "SEO Score" in html
+    assert "AVRI" in html
+    assert "Статус" in html
