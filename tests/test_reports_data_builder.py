@@ -83,6 +83,8 @@ def test_context_build_is_deterministic() -> None:
         "https://example.com/b",
         "https://example.com/a",
     ]
+    assert set(context_a.keys()) == {"audit", "facts", "issue_map", "top_pages"}
+    assert set(context_a["issue_map"].keys()) == {"P0", "P1", "P2", "P3"}
 
 
 def test_missing_data_raises_error() -> None:
@@ -117,3 +119,11 @@ def test_package_selector_returns_deterministic_trigger_metrics() -> None:
     assert decision.trigger_metrics == {"P0": 2, "P1": 5, "P2": 3}
     assert isinstance(decision.rationale, str)
     assert decision.rationale
+
+
+def test_package_selector_edge_cases() -> None:
+    no_issues = choose_package(p0_count=0, p1_count=0, p2_count=0)
+    p2_heavy = choose_package(p0_count=0, p1_count=2, p2_count=4)
+
+    assert no_issues.package_name == PACKAGE_START
+    assert p2_heavy.package_name == PACKAGE_GROWTH
