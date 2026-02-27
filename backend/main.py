@@ -1,8 +1,10 @@
 import socket
+from pathlib import Path
 from urllib.parse import urlparse
 
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from backend.config import settings
 from backend.routers.audits import router as audits_router
@@ -21,6 +23,8 @@ def _check_db_socket(database_url: str) -> bool:
 
 def create_app() -> FastAPI:
     app = FastAPI(title="NeuroSearch Audit")
+    static_dir = Path(__file__).resolve().parents[1] / "frontend" / "static"
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
     @app.get("/", include_in_schema=False)
     async def root() -> RedirectResponse:

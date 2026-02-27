@@ -1,11 +1,95 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NeuroSearch Audit</title>
+    <title>NeuroSearch Audit Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   </head>
-  <body>
-    <h1>NeuroSearch Audit</h1>
+  <body class="min-h-screen bg-slate-100 text-slate-900">
+    <div x-data="dashboardApp()" x-init="init()" class="mx-auto max-w-6xl p-6">
+      <header class="mb-6 rounded-2xl bg-slate-900 p-6 text-white">
+        <h1 class="text-2xl font-bold">NeuroSearch Dashboard</h1>
+        <p class="mt-2 text-sm text-slate-300">Аудиты сайта: запуск, мониторинг, результаты</p>
+      </header>
+
+      <nav class="mb-6 flex flex-wrap gap-2">
+        <button
+          type="button"
+          class="rounded-lg border px-3 py-2 text-sm"
+          :class="view === 'list' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 bg-white'"
+          @click="setView('list')"
+        >
+          Список
+        </button>
+        <button
+          type="button"
+          class="rounded-lg border px-3 py-2 text-sm"
+          :class="view === 'create' ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 bg-white'"
+          @click="setView('create')"
+        >
+          Новый аудит
+        </button>
+      </nav>
+
+      <section x-show="view === 'list'" x-cloak class="rounded-2xl border border-slate-200 bg-white p-6">
+        <h2 class="text-xl font-semibold">Список аудитов</h2>
+        <p class="mt-2 text-sm text-slate-600">Здесь будет таблица с SEO/AVRI и статусом.</p>
+      </section>
+
+      <section x-show="view === 'create'" x-cloak class="rounded-2xl border border-slate-200 bg-white p-6">
+        <h2 class="text-xl font-semibold">Запуск нового аудита</h2>
+        <p class="mt-2 text-sm text-slate-600">Здесь будет форма запуска аудита.</p>
+      </section>
+
+      <section x-show="view === 'progress'" x-cloak class="rounded-2xl border border-slate-200 bg-white p-6">
+        <h2 class="text-xl font-semibold">Прогресс аудита</h2>
+        <p class="mt-2 text-sm text-slate-600">Сюда будет подключен polling статуса.</p>
+      </section>
+
+      <section x-show="view === 'result'" x-cloak class="rounded-2xl border border-slate-200 bg-white p-6">
+        <h2 class="text-xl font-semibold">Результаты аудита</h2>
+        <p class="mt-2 text-sm text-slate-600">SEO Score, AVRI и карта проблем.</p>
+      </section>
+    </div>
+
+    <script>
+      function dashboardApp() {
+        return {
+          view: "list",
+          auditId: null,
+
+          init() {
+            this.syncFromUrl();
+            window.addEventListener("popstate", () => this.syncFromUrl());
+          },
+
+          setView(nextView, auditId = null) {
+            this.view = nextView;
+            this.auditId = auditId;
+
+            const params = new URLSearchParams(window.location.search);
+            params.set("view", nextView);
+            if (auditId) {
+              params.set("audit_id", String(auditId));
+            } else {
+              params.delete("audit_id");
+            }
+            const query = params.toString();
+            const nextUrl = query ? `?${query}` : window.location.pathname;
+            window.history.pushState({}, "", nextUrl);
+          },
+
+          syncFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const nextView = params.get("view");
+            const allowedViews = ["list", "create", "progress", "result"];
+            this.view = allowedViews.includes(nextView) ? nextView : "list";
+            this.auditId = params.get("audit_id");
+          },
+        };
+      }
+    </script>
   </body>
 </html>
