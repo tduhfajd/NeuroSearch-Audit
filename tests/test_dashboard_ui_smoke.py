@@ -42,7 +42,7 @@ def test_routing_views_are_declared_in_index_markup() -> None:
 def test_alpine_is_used_for_state_routing() -> None:
     html = _read_index()
 
-    assert "x-data=\"dashboardApp()\"" in html
+    assert 'x-data="dashboardApp()"' in html
     assert "function dashboardApp()" in html
     assert "syncFromUrl" in html
     assert "setView" in html
@@ -78,20 +78,20 @@ def test_create_form_contains_required_inputs() -> None:
     html = _read_index()
 
     assert "Запуск нового аудита" in html
-    assert "x-model.trim=\"createForm.url\"" in html
-    assert "x-model=\"createForm.goal\"" in html
-    assert "x-model.number=\"createForm.crawl_depth\"" in html
+    assert 'x-model.trim="createForm.url"' in html
+    assert 'x-model="createForm.goal"' in html
+    assert 'x-model.number="createForm.crawl_depth"' in html
 
 
 def test_submit_flow_posts_to_audits_endpoint() -> None:
     html = _read_index()
 
-    assert "@submit.prevent=\"submitCreateAudit()\"" in html
-    assert "await fetch(\"/audits\"" in html
-    assert "method: \"POST\"" in html
+    assert '@submit.prevent="submitCreateAudit()"' in html
+    assert 'await fetch("/audits"' in html
+    assert 'method: "POST"' in html
 
 
 def test_progress_redirect_after_successful_submit() -> None:
     html = _read_index()
 
-    assert "this.setView(\"progress\", createdAudit.id)" in html
+    assert 'this.setView("progress", createdAudit.id)' in html
