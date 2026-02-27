@@ -72,6 +72,14 @@ class AIAnalyzeResponse(BaseModel):
     errors: list[str]
 
 
+class AuditStatusResponse(BaseModel):
+    audit_id: int
+    status: str
+    progress: int
+    pages_crawled: int
+    errors: list[str]
+
+
 class IssueReadResponse(BaseModel):
     id: int
     rule_id: str
@@ -100,6 +108,34 @@ def _to_response(audit: Audit) -> AuditReadResponse:
         pages_crawled=audit.pages_crawled,
         created_at=audit.created_at,
     )
+
+
+def _derive_progress(audit: Audit) -> int:
+    meta = audit.meta if isinstance(audit.meta, dict) else {}
+    raw_progress = meta.get("progress")
+    if isinstance(raw_progress, (int, float)):
+        return max(0, min(100, int(raw_progress)))
+    if audit.status in {"completed", "failed"}:
+        return 100
+    return 0
+
+
+def _extract_crawl_errors(audit: Audit) -> list[str]:
+    meta = audit.meta if isinstance(audit.meta, dict) else {}
+    raw_errors = meta.get("crawl_errors")
+    if not isinstance(raw_errors, list):
+        return []
+
+    normalized: list[str] = []
+    for item in raw_errors:
+        if isinstance(item, str):
+            normalized.append(item)
+            continue
+        if isinstance(item, dict):
+            message = item.get("error")
+            if isinstance(message, str):
+                normalized.append(message)
+    return normalized
 
 
 @router.post("", response_model=AuditCreateResponse, status_code=status.HTTP_201_CREATED)
@@ -152,6 +188,24 @@ async def get_audit(
     if audit is None:
         raise HTTPException(status_code=404, detail="Audit not found")
     return _to_response(audit)
+
+
+@router.get("/{audit_id}/status", response_model=AuditStatusResponse)
+async def get_audit_status(
+    audit_id: int,
+    db: Session = Depends(get_db),  # noqa: B008
+) -> AuditStatusResponse:
+    audit = db.get(Audit, audit_id)
+    if audit is None:
+        raise HTTPException(status_code=404, detail="Audit not found")
+
+    return AuditStatusResponse(
+        audit_id=audit.id,
+        status=audit.status,
+        progress=_derive_progress(audit),
+        pages_crawled=audit.pages_crawled,
+        errors=_extract_crawl_errors(audit),
+    )
 
 
 @router.post("/{audit_id}/analyze", response_model=AnalyzeAuditResponse)
