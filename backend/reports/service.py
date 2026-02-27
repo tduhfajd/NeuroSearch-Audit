@@ -10,8 +10,8 @@ from sqlalchemy.orm import Session
 
 from backend.analyzer.ai_bridge import (
     PlaywrightChatGPTTransport,
-    ReauthRequiredError,
     RateLimitError,
+    ReauthRequiredError,
     session_health,
 )
 from backend.db.models import Page, Report
@@ -92,9 +92,13 @@ def _generate_executive_summary(
     except ReauthRequiredError as exc:
         raise ReportServiceError("reauth_required", str(exc)) from exc
     except RateLimitError as exc:
-        raise ReportServiceError("ai_text_unavailable", "AI rate limit while generating summary") from exc
+        raise ReportServiceError(
+            "ai_text_unavailable", "AI rate limit while generating summary"
+        ) from exc
     except Exception as exc:  # noqa: BLE001
-        raise ReportServiceError("ai_text_unavailable", "Failed to generate executive summary") from exc
+        raise ReportServiceError(
+            "ai_text_unavailable", "Failed to generate executive summary"
+        ) from exc
 
     summary = response.strip()
     if not summary:

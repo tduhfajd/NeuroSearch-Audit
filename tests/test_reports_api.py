@@ -18,7 +18,10 @@ from backend.reports.service import ReportServiceError, generate_report_artifact
 class _FakeTransport:
     def send_prompt(self, prompt: str) -> str:
         assert "TOP_RECOMMENDATIONS" in prompt
-        return "Ключевые технические проблемы ограничивают видимость; приоритет — исправление P1 и структура контента."
+        return (
+            "Ключевые технические проблемы ограничивают видимость; "
+            "приоритет — исправление P1 и структура контента."
+        )
 
 
 class _EmptyTransport:
