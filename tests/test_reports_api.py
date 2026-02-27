@@ -203,7 +203,11 @@ def test_not_found_returns_404_for_reports() -> None:
         app.dependency_overrides.clear()
 
     assert response.status_code == 404
-    assert response.json()["detail"] == "Audit not found"
+    assert response.json()["detail"] == {
+        "code": "not_found",
+        "message": "Audit not found",
+        "retryable": False,
+    }
 
 
 def test_reports_e2e_generation_persists_rows(
