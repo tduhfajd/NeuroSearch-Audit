@@ -45,6 +45,20 @@ class SummaryTransport(Protocol):
 DEFAULT_CHATGPT_TRANSPORT_FACTORY = PlaywrightChatGPTTransport
 
 
+def _reserve_report_path(storage_dir: Path, file_name: str) -> Path:
+    base = storage_dir / file_name
+    if not base.exists():
+        return base
+
+    stem = Path(file_name).stem
+    suffix = Path(file_name).suffix or ".pdf"
+    for idx in range(1, 1000):
+        candidate = storage_dir / f"{stem}_{idx}{suffix}"
+        if not candidate.exists():
+            return candidate
+    raise ReportServiceError("persistence_error", "Failed to reserve report file path", retryable=True)
+
+
 def _extract_ai_text(db: Session, audit_id: int) -> tuple[str, list[str]]:
     pages = (
         db.query(Page)
@@ -163,10 +177,11 @@ def generate_report_artifact(
     html = render_html(template_name, template_context)
     pdf_bytes = html_to_pdf_bytes(html)
 
-    storage_dir.mkdir(parents=True, exist_ok=True)
+    run_storage_dir = storage_dir / f"audit_{audit_id}"
+    run_storage_dir.mkdir(parents=True, exist_ok=True)
     generated_at = datetime.now(UTC)
     file_name = deterministic_filename(audit_id, report_type, now=generated_at)
-    file_path = storage_dir / file_name
+    file_path = _reserve_report_path(run_storage_dir, file_name)
     file_path.write_bytes(pdf_bytes)
 
     try:
