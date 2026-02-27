@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
@@ -52,18 +53,35 @@ class PlaywrightSessionBridge:
 
         storage_state_path.parent.mkdir(parents=True, exist_ok=True)
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False)
+            try:
+                browser = p.chromium.launch(headless=False)
+            except Exception as exc:  # noqa: BLE001
+                message = str(exc)
+                if "Missing X server or $DISPLAY" in message:
+                    raise SessionStateError(
+                        "Cannot open browser in Docker (no X server). "
+                        "Run AI Bridge setup on host machine and retry."
+                    ) from exc
+                raise SessionStateError(f"failed to launch browser: {message}") from exc
+
             try:
                 page = browser.new_page()
                 page.goto(url, wait_until="domcontentloaded", timeout=60000)
-                try:
-                    input(
-                        "Complete ChatGPT login in browser, "
-                        "then press Enter to save session state... "
+                deadline = time.monotonic() + 300
+                while time.monotonic() < deadline:
+                    state = page.context.storage_state()
+                    cookies = state.get("cookies", [])
+                    has_openai_cookie = any(
+                        isinstance(cookie, dict) and "openai.com" in str(cookie.get("domain", ""))
+                        for cookie in cookies
                     )
-                except EOFError:
-                    page.wait_for_timeout(5000)
-                page.context.storage_state(path=str(storage_state_path))
+                    if has_openai_cookie:
+                        page.context.storage_state(path=str(storage_state_path))
+                        return
+                    page.wait_for_timeout(1500)
+                raise SessionStateError(
+                    "login timeout: complete ChatGPT login within 5 minutes and retry setup"
+                )
             finally:
                 browser.close()
 

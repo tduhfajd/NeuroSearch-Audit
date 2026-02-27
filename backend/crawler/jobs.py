@@ -24,6 +24,7 @@ from backend.crawler.site_checks import SiteCheckStatus, check_robots_and_sitema
 from backend.crawler.spider import CrawlOutput, PageFetchResult, crawl_site
 from backend.db.models import Audit
 from backend.db.session import SessionLocal
+from backend.runtime_settings import get_pagespeed_api_key
 
 
 @dataclass(slots=True)
@@ -168,8 +169,16 @@ def execute_crawl_pipeline(audit: Audit) -> dict[str, Any]:
         for page in crawl_result.pages
     ]
 
+    audit_meta = audit.meta if isinstance(audit.meta, dict) else {}
+    meta_api_key = audit_meta.get("pagespeed_api_key")
+    effective_pagespeed_api_key = (
+        meta_api_key.strip()
+        if isinstance(meta_api_key, str) and meta_api_key.strip()
+        else (get_pagespeed_api_key() or settings.pagespeed_api_key)
+    )
+
     provider = HybridPageSpeedProvider(
-        primary=GooglePageSpeedProvider(api_key=None),
+        primary=GooglePageSpeedProvider(api_key=effective_pagespeed_api_key),
         fallback=LighthouseProvider(),
     )
     page_speed_scores = collect_pagespeed_scores(page_payloads, provider, limit=10)

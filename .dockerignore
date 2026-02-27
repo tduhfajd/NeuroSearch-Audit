@@ -1,0 +1,9 @@
+.git
+.venv
+.pytest_cache
+.ruff_cache
+.planning
+generated_reports
+chatgpt_session
+__pycache__
+*.pyc

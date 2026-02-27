@@ -1,137 +1,215 @@
 # NeuroSearch Audit
 
-Локальный инструмент для SEO-аудита и AI-ready оценки сайтов: crawl -> analyze -> ai-analyze -> PDF report.
+Локальный сервис для автоматизированного SEO-аудита сайта и оценки AI-ready (насколько сайт готов к видимости в AI-системах в целом).
 
-## Prerequisites
+## Для чего нужен проект
 
-- macOS (Apple Silicon), Python 3.12
-- PostgreSQL 16
-- Playwright Chromium
-- Опционально: Redis/RQ для фоновой очереди (в v1 используется in-memory queue)
+Сервис закрывает полный цикл в один запуск:
 
-## Install And Run
+1. Краулит сайт (технический сбор данных по страницам)
+2. Считает rule-based метрики и проблемы (P0–P3)
+3. Выполняет AI-анализ контента (через AI Bridge, без API-ключа)
+4. Генерирует артефакты: PDF-отчёт и КП
 
-### 1) Prepare environment
+Цель: убрать ручной сбор и ручную проверку, чтобы аудит можно было делать быстро и воспроизводимо на локальном Mac.
 
-```bash
-cp .env.example .env
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e .
-playwright install chromium
-```
+## Как это работает (архитектура)
 
-### 2) Start PostgreSQL
+- `FastAPI` backend обслуживает API и UI.
+- `Crawler` обходит страницы и сохраняет данные в PostgreSQL.
+- `Analyzer` запускает rule-based и AI-анализ.
+- `Reports` рендерит PDF-отчёт и КП.
+- UI (`frontend/static/index.html`) управляет сценариями через API.
 
-Основной путь (Homebrew):
+Основной flow:
 
-```bash
-brew install postgresql@16
-brew services start postgresql@16
-```
+1. `POST /audits` — создать аудит
+2. `/audits/{id}/status` — трекать прогресс
+3. `POST /audits/{id}/analyze` — rule-based анализ
+4. `POST /audits/{id}/ai-analyze` — AI-анализ
+5. `GET /audits/{id}/report/pdf` и `/report/kp` — скачать документы
 
-Fallback (Docker Compose):
+## Быстрый старт для macOS Apple Silicon (M1/M2/M3/M4)
 
-```bash
-docker compose up -d db
-```
+Ниже — максимально дружелюбный сценарий установки “с нуля”.
 
-### 3) Run migrations
+### Самый простой путь для обычного пользователя
 
-```bash
-alembic -c backend/db/migrations/alembic.ini upgrade head
-```
+1. Выполнить bootstrap: `./scripts/bootstrap_macos_arm64.sh`
+2. Запустить сервис: `./scripts/run_local.sh`
+3. Открыть UI и завершить настройку в интерфейсе (`Настройки`)
 
-### 4) Setup AI session and validate health
+### Вариант A (рекомендуется): one-command bootstrap
 
 ```bash
-python -m backend.analyzer.ai_bridge --setup
-python -m backend.analyzer.ai_bridge --health
+chmod +x scripts/bootstrap_macos_arm64.sh scripts/run_local.sh
+./scripts/bootstrap_macos_arm64.sh
 ```
 
-### 5) Start backend
+Скрипт автоматически:
+
+- проверит, что у вас macOS arm64
+- проверит/установит Xcode CLT и Homebrew
+- установит `python@3.12` и `postgresql@16`
+- поднимет `postgresql@16` через `brew services`
+- создаст роль/БД (`user` / `neurosearch_audit`) при отсутствии
+- создаст `.env` из `.env.example`
+- создаст `.venv` и установит Python-зависимости
+- установит Playwright Chromium
+- применит Alembic миграции
+
+После установки запуск backend:
 
 ```bash
-uvicorn backend.main:app --reload --port 8000
+./scripts/run_local.sh
 ```
 
-## First Audit Flow
+UI:
 
-### 1) Create audit
+- http://127.0.0.1:8000/
+- http://127.0.0.1:8000/static/index.html
+
+После запуска зайдите во вкладку `Настройки`:
+
+1. Сохраните `Google PageSpeed API Key` один раз (глобально)
+2. Нажмите `Запустить авторизацию` в блоке AI Bridge и войдите в ChatGPT в открывшемся браузере
+
+### Вариант B: Docker
 
 ```bash
-curl -s -X POST http://127.0.0.1:8000/audits \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "url": "https://example.com",
-    "client_name": "ООО Пример",
-    "niche": "B2B SaaS",
-    "region": "Москва",
-    "goal": "leads",
-    "crawl_depth": 200
-  }'
+docker compose up -d --build
 ```
 
-### 2) Poll status
+UI:
+
+- http://127.0.0.1:8000/static/index.html
+
+## Настройка AI Bridge (обязательно для AI-анализа)
+
+AI-анализ работает через AI Bridge и локальную сессию ChatGPT Plus (`storage_state.json`).
+ChatGPT используется как инструмент оценки, а не как целевая система оптимизации.
+
+Один раз выполните:
 
 ```bash
-curl -s http://127.0.0.1:8000/audits/<AUDIT_ID>/status
+.venv/bin/python -m backend.analyzer.ai_bridge --setup
+.venv/bin/python -m backend.analyzer.ai_bridge --health
 ```
 
-### 3) Run rule-based analysis and AI analysis
+Если используете Docker, дополнительно проверьте внутри контейнера:
 
 ```bash
-curl -s -X POST http://127.0.0.1:8000/audits/<AUDIT_ID>/analyze
-curl -s -X POST http://127.0.0.1:8000/audits/<AUDIT_ID>/ai-analyze
+docker compose exec app python -m backend.analyzer.ai_bridge --health
 ```
 
-### 4) Download report and KP
+Важно для Docker:
+
+- Кнопка `Запустить авторизацию` в UI не может открыть видимое окно браузера внутри контейнера (нет X server/GUI).
+- Для Docker-сценария авторизацию ChatGPT нужно делать на Mac-хосте, а не внутри контейнера:
 
 ```bash
-curl -L -o report.pdf http://127.0.0.1:8000/audits/<AUDIT_ID>/report/pdf
-curl -L -o kp.pdf http://127.0.0.1:8000/audits/<AUDIT_ID>/report/kp
+.venv/bin/python -m backend.analyzer.ai_bridge --setup
 ```
 
-## Known Limits
+Файл `chatgpt_session/storage_state.json` примонтирован в контейнер, поэтому после setup на хосте AI-анализ в Docker начинает работать без дополнительных действий.
 
-- ChatGPT Plus rate limit: при перегрузке этап AI может перейти в partial mode.
-- Session state обязательна: при истечении сессии API вернет `reauth_required`.
-- JS-heavy страницы: применяется timeout fallback policy и ограниченный retry budget.
+В UI есть проверка состояния AI Bridge и подсказка по переавторизации.
 
-## Operational Invariants
+## Настройка Google PageSpeed API (опционально, но рекомендуется)
 
-- Любая диагностируемая ошибка пайплайна возвращается в контракте `code/message/retryable`.
-- Повторный аудит одного домена создает отдельный `audit_id` и отдельные report artifacts.
-- Этап AI не должен валить весь запуск при исчерпании rate-limit retries; допустим partial result.
+По умолчанию сервис использует `Lighthouse` fallback.  
+Чтобы включить primary-провайдер (`Google PageSpeed API`), нужен API key.
+
+Как получить ключ:
+
+1. Откройте Google Cloud Console: `https://console.cloud.google.com/`
+2. Создайте проект (или выберите существующий) в селекторе проектов.
+3. Перейдите в `APIs & Services -> Library`.
+4. Найдите `PageSpeed Insights API` и нажмите `Enable`.
+5. Перейдите в `APIs & Services -> Credentials`.
+6. Нажмите `Create credentials -> API key`.
+7. В форме `Create API key` заполните:
+   - `Name`: любое понятное имя, например `NeuroSearch Dashboard`
+   - `Authenticate API calls through a service account`: не включать
+   - `Application restrictions`: `None` (для локального запуска на Mac)
+   - `API restrictions`: `Restrict key` -> выбрать только `PageSpeed Insights API`
+8. Нажмите `Create`, затем скопируйте сгенерированный ключ.
+
+Как передать ключ в сервис:
+
+1. Через UI `Настройки` (рекомендуется): сохранить один глобальный ключ.
+   - Откройте `http://127.0.0.1:8000/static/index.html`
+   - Перейдите в раздел `Настройки`
+   - Вставьте ключ в поле `Google PageSpeed API Key`
+   - Нажмите `Сохранить`
+2. Через UI `Новый аудит`: указать ключ только для конкретного запуска.
+3. Через `.env` (глобально для всех аудитов):
+
+```env
+PAGESPEED_API_KEY=ваш_ключ
+```
+
+Приоритет такой:
+
+- ключ из формы создания аудита (если указан)
+- ключ из UI `Настройки` (если сохранён)
+- иначе `PAGESPEED_API_KEY` из `.env`
+- иначе fallback на `Lighthouse`
+
+## Минимальная проверка после запуска
+
+```bash
+curl -s http://127.0.0.1:8000/health
+curl -s http://127.0.0.1:8000/health/db
+curl -s http://127.0.0.1:8000/ai-bridge/health
+```
+
+Ожидаемо:
+
+- `health` -> `{"status":"ok"}`
+- `health/db` -> `{"status":"ok"}`
+- `ai-bridge/health` -> `ok` или `reauth_required`
 
 ## Troubleshooting
 
 ### `reauth_required`
 
-1. Выполните повторно setup:
-   `python -m backend.analyzer.ai_bridge --setup`
-2. Проверьте состояние:
-   `python -m backend.analyzer.ai_bridge --health`
+Повторно выполните:
+
+```bash
+.venv/bin/python -m backend.analyzer.ai_bridge --setup
+.venv/bin/python -m backend.analyzer.ai_bridge --health
+```
 
 ### `rate_limit`
 
-1. Подождите окно лимитов ChatGPT Plus.
-2. Перезапустите только AI-этап:
-   `POST /audits/<AUDIT_ID>/ai-analyze`
+Подождите окно лимитов AI Bridge/провайдера и повторите:
 
-### `persistence_error`
+```bash
+POST /audits/<AUDIT_ID>/ai-analyze
+```
 
-1. Проверьте доступность БД и права записи в каталог отчетов.
-2. Перезапустите генерацию отчета:
-   `GET /audits/<AUDIT_ID>/report/pdf`
+### Backend не стартует
 
-### Crawl timeouts on JS-heavy sites
+Проверьте:
 
-1. Проверьте `audit.meta.spa_diagnostics` и `crawl_errors`.
-2. Повторите аудит с меньшей глубиной (`crawl_depth`) для первичной диагностики.
+- работает ли PostgreSQL (`brew services list`)
+- корректен ли `DATABASE_URL` в `.env`
+- применены ли миграции
 
-## Recovery Steps
+## Полезные команды
 
-- Если этап crawl упал: создайте новый аудит и повторите запуск.
-- Если упал только ai/report: используйте существующий `audit_id` и перезапустите нужный endpoint.
-- Если нужна чистая среда: остановите backend, проверьте БД, примените миграции и перезапустите сервис.
+```bash
+# Локальный запуск
+./scripts/run_local.sh
+
+# Миграции
+.venv/bin/alembic -c backend/db/migrations/alembic.ini upgrade head
+
+# Тесты
+pytest -q
+
+# Линтер/формат
+ruff check backend tests
+ruff format --check backend tests
+```

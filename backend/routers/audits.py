@@ -38,6 +38,7 @@ class AuditCreateRequest(BaseModel):
     region: str | None = None
     goal: AuditGoal | None = None
     crawl_depth: int = 200
+    pagespeed_api_key: str | None = None
 
     @field_validator("crawl_depth")
     @classmethod
@@ -45,6 +46,14 @@ class AuditCreateRequest(BaseModel):
         if value < 1 or value > 500:
             raise ValueError("crawl_depth must be between 1 and 500")
         return value
+
+    @field_validator("pagespeed_api_key")
+    @classmethod
+    def validate_pagespeed_api_key(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        return normalized or None
 
 
 class AuditReadResponse(BaseModel):
@@ -158,7 +167,11 @@ async def create_audit(
             crawl_depth=payload.crawl_depth,
             status="pending",
             pages_crawled=0,
-            meta={"progress": 0, "crawl_errors": []},
+            meta={
+                "progress": 0,
+                "crawl_errors": [],
+                "pagespeed_api_key": payload.pagespeed_api_key,
+            },
         )
         db.add(audit)
         db.commit()

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import json
+import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -58,7 +60,7 @@ class PlaywrightChatGPTTransport:
         self.storage_state_path = storage_state_path
         self.adapter = ChatGPTSelectorAdapter()
 
-    def send_prompt(self, prompt: str) -> str:
+    def _send_prompt_sync(self, prompt: str) -> str:
         try:
             from playwright.sync_api import sync_playwright
         except Exception as exc:  # noqa: BLE001
@@ -75,6 +77,29 @@ class PlaywrightChatGPTTransport:
                 return self.adapter.latest_response_text(page)
             finally:
                 browser.close()
+
+    def send_prompt(self, prompt: str) -> str:
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return self._send_prompt_sync(prompt)
+
+        result: dict[str, str] = {}
+        error: dict[str, Exception] = {}
+
+        def _target() -> None:
+            try:
+                result["value"] = self._send_prompt_sync(prompt)
+            except Exception as exc:  # noqa: BLE001
+                error["value"] = exc
+
+        thread = threading.Thread(target=_target, daemon=True)
+        thread.start()
+        thread.join()
+
+        if "value" in error:
+            raise error["value"]
+        return result["value"]
 
 
 def setup_cli(storage_state_path: Path = DEFAULT_STORAGE_STATE_PATH) -> int:
