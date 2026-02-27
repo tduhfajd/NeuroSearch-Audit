@@ -57,7 +57,9 @@ class _Clock:
 
 
 class _TimeoutRenderer:
-    def __init__(self, fail_attempts: int, html: str = "<html><body>rendered</body></html>") -> None:
+    def __init__(
+        self, fail_attempts: int, html: str = "<html><body>rendered</body></html>"
+    ) -> None:
         self.fail_attempts = fail_attempts
         self.html = html
         self.calls = 0

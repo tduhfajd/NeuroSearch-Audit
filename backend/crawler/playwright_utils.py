@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 from typing import Protocol
 
 
 class HTMLRenderer(Protocol):
-    def render(self, url: str, timeout_ms: int = 15000, wait_until: str = "domcontentloaded") -> str: ...
+    def render(
+        self,
+        url: str,
+        timeout_ms: int = 15000,
+        wait_until: str = "domcontentloaded",
+    ) -> str: ...
 
 
 @dataclass(slots=True)
@@ -47,7 +52,12 @@ def should_use_playwright(html: str, url: str) -> RenderDecision:
 
 
 class PlaywrightRenderer:
-    def render(self, url: str, timeout_ms: int = 15000, wait_until: str = "domcontentloaded") -> str:
+    def render(
+        self,
+        url: str,
+        timeout_ms: int = 15000,
+        wait_until: str = "domcontentloaded",
+    ) -> str:
         try:
             from playwright.sync_api import sync_playwright
         except Exception as exc:  # noqa: BLE001
@@ -92,7 +102,11 @@ def render_with_timeout_policy(
         for timeout_ms in steps:
             attempts += 1
             try:
-                rendered = renderer.render(url=url, timeout_ms=timeout_ms, wait_until="domcontentloaded")
+                rendered = renderer.render(
+                    url=url,
+                    timeout_ms=timeout_ms,
+                    wait_until="domcontentloaded",
+                )
                 return RenderOutcome(
                     html=rendered,
                     used_playwright=True,
