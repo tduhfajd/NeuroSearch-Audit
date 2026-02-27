@@ -10,6 +10,7 @@ from sqlalchemy.pool import StaticPool
 
 from backend.analyzer.ai_bridge import ReauthRequiredError
 from backend.crawler.jobs import run_crawl_job
+from backend.crawler.playwright_utils import render_with_timeout_policy
 from backend.db import session as db_session_module
 from backend.db.models import Audit, Base, Page
 from backend.main import app
@@ -32,6 +33,24 @@ class _Clock:
     def sleep(self, seconds: float) -> None:
         self.sleeps.append(seconds)
         self.now_value += seconds
+
+
+class _TimeoutRenderer:
+    def __init__(self, fail_attempts: int, html: str = "<html><body>rendered</body></html>") -> None:
+        self.fail_attempts = fail_attempts
+        self.html = html
+        self.calls = 0
+        self.timeouts: list[int] = []
+
+    def render(
+        self, url: str, timeout_ms: int = 15000, wait_until: str = "domcontentloaded"
+    ) -> str:
+        _ = (url, wait_until)
+        self.calls += 1
+        self.timeouts.append(timeout_ms)
+        if self.calls <= self.fail_attempts:
+            raise TimeoutError("page render timeout")
+        return self.html
 
 
 def _build_session_local() -> sessionmaker:
@@ -168,3 +187,39 @@ def test_error_contract_crawler_timeout_recorded(monkeypatch: pytest.MonkeyPatch
     assert refreshed.meta["error"]["code"] == "timeout"
     assert refreshed.meta["error"]["retryable"] is True
     assert refreshed.meta["crawl_errors"][-1]["message"] == "crawl deadline exceeded"
+
+
+def test_spa_timeout_fallback_waits_switches_to_http() -> None:
+    renderer = _TimeoutRenderer(fail_attempts=6)
+    html = "<html><body><div id='app'></div><script></script></body></html>"
+
+    outcome = render_with_timeout_policy(
+        url="https://example.com",
+        http_html=html,
+        renderer=renderer,
+        timeout_steps_ms=(100, 200, 300),
+        retry_budget=1,
+    )
+
+    assert outcome.timed_out is True
+    assert outcome.used_playwright is False
+    assert outcome.reason.endswith("timeout_fallback")
+    assert outcome.fallback_attempts == 6
+
+
+def test_retry_budget_limits_render_attempts() -> None:
+    renderer = _TimeoutRenderer(fail_attempts=10)
+    html = "<html><body><div id='app'></div><script></script></body></html>"
+
+    outcome = render_with_timeout_policy(
+        url="https://example.com",
+        http_html=html,
+        renderer=renderer,
+        timeout_steps_ms=(50, 100),
+        retry_budget=2,
+    )
+
+    assert outcome.used_playwright is False
+    assert outcome.fallback_attempts == 6
+    assert renderer.calls == 6
+    assert renderer.timeouts == [50, 100, 50, 100, 50, 100]

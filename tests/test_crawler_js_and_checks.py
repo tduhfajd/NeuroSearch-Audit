@@ -6,8 +6,10 @@ class FakeRenderer:
         self.html = html
         self.called = False
 
-    def render(self, url: str, timeout_ms: int = 15000) -> str:
-        _ = (url, timeout_ms)
+    def render(
+        self, url: str, timeout_ms: int = 15000, wait_until: str = "domcontentloaded"
+    ) -> str:
+        _ = (url, timeout_ms, wait_until)
         self.called = True
         return self.html
 

@@ -19,7 +19,7 @@ from backend.crawler.pagespeed import (
 )
 from backend.crawler.parsers import parse_page_content
 from backend.crawler.persistence import upsert_pages
-from backend.crawler.playwright_utils import PlaywrightRenderer, render_with_fallback
+from backend.crawler.playwright_utils import PlaywrightRenderer, render_with_timeout_policy
 from backend.crawler.site_checks import SiteCheckStatus, check_robots_and_sitemap
 from backend.crawler.spider import CrawlOutput, PageFetchResult, crawl_site
 from backend.db.models import Audit
@@ -63,21 +63,36 @@ def enqueue_crawl_job(audit_id: int) -> str:
     return queue.enqueue(run_crawl_job, audit_id)
 
 
-def _http_fetcher(url: str) -> PageFetchResult:
-    req = Request(url, headers={"User-Agent": "NeuroSearchAuditBot/1.0"})
-    with urlopen(req, timeout=15) as response:  # noqa: S310
-        html = response.read().decode("utf-8", errors="ignore")
-        status_code = getattr(response, "status", 200)
-    try:
-        decision_html, _, _ = render_with_fallback(
-            url=url,
-            http_html=html,
-            renderer=PlaywrightRenderer(),
-            timeout_ms=15000,
-        )
-    except Exception:  # noqa: BLE001
-        decision_html = html
-    return PageFetchResult(url=url, status_code=status_code, html=decision_html)
+def _build_http_fetcher() -> tuple[Callable[[str], PageFetchResult], dict[str, int]]:
+    diagnostics = {"spa_timeout_count": 0, "spa_fallback_count": 0, "spa_retry_count": 0}
+
+    def _http_fetcher(url: str) -> PageFetchResult:
+        req = Request(url, headers={"User-Agent": "NeuroSearchAuditBot/1.0"})
+        with urlopen(req, timeout=15) as response:  # noqa: S310
+            html = response.read().decode("utf-8", errors="ignore")
+            status_code = getattr(response, "status", 200)
+        try:
+            outcome = render_with_timeout_policy(
+                url=url,
+                http_html=html,
+                renderer=PlaywrightRenderer(),
+                timeout_steps_ms=(4000, 10000, 15000),
+                retry_budget=1,
+            )
+        except Exception:  # noqa: BLE001
+            outcome = None
+
+        if outcome is None:
+            return PageFetchResult(url=url, status_code=status_code, html=html)
+
+        if outcome.timed_out:
+            diagnostics["spa_timeout_count"] += 1
+        if outcome.reason.endswith("timeout_fallback"):
+            diagnostics["spa_fallback_count"] += 1
+        diagnostics["spa_retry_count"] += outcome.retries_used
+        return PageFetchResult(url=url, status_code=status_code, html=outcome.html)
+
+    return _http_fetcher, diagnostics
 
 
 def _fetch_status_code(url: str) -> int:
@@ -108,7 +123,8 @@ def _get_sitemap_urls(root_url: str) -> list[str]:
 
 def _get_homepage_links(root_url: str) -> list[str]:
     try:
-        homepage = _http_fetcher(root_url)
+        fetcher, _ = _build_http_fetcher()
+        homepage = fetcher(root_url)
     except Exception:  # noqa: BLE001
         return []
     parsed = parse_page_content(homepage.html, root_url)
@@ -116,6 +132,7 @@ def _get_homepage_links(root_url: str) -> list[str]:
 
 
 def execute_crawl_pipeline(audit: Audit) -> dict[str, Any]:
+    fetcher, spa_diagnostics = _build_http_fetcher()
     site_check: SiteCheckStatus = check_robots_and_sitemap(
         base_url=audit.url,
         fetch_status=_fetch_status_code,
@@ -126,7 +143,7 @@ def execute_crawl_pipeline(audit: Audit) -> dict[str, Any]:
 
     crawl_result: CrawlOutput = crawl_site(
         root_url=audit.url,
-        fetcher=_http_fetcher,
+        fetcher=fetcher,
         crawl_depth=audit.crawl_depth,
         max_runtime_seconds=120,
         retries=2,
@@ -165,6 +182,7 @@ def execute_crawl_pipeline(audit: Audit) -> dict[str, Any]:
         "pages": page_payloads,
         "crawl_errors": crawl_result.crawl_errors,
         "timed_out": crawl_result.timed_out,
+        "spa_diagnostics": spa_diagnostics,
         "robots_status": site_check.robots_status,
         "sitemap_status": site_check.sitemap_status,
         "pagespeed_source": {item.url: item.source for item in page_speed_scores},
@@ -211,6 +229,7 @@ def run_crawl_job(audit_id: int, db_session: Session | None = None) -> None:
                 "sitemap_status": result["sitemap_status"],
                 "crawl_errors": result["crawl_errors"],
                 "timed_out": result["timed_out"],
+                "spa_diagnostics": result.get("spa_diagnostics", {}),
                 "pagespeed_source": result["pagespeed_source"],
             },
         )
