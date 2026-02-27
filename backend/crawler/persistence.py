@@ -45,7 +45,7 @@ def upsert_pages(
     total = 0
     for idx in range(0, len(payload_list), batch_size):
         batch = payload_list[idx : idx + batch_size]
-        urls = [payload["url"] for payload in batch if payload.get("url")]
+        urls = list({payload["url"] for payload in batch if payload.get("url")})
         existing_rows = db.execute(
             select(Page).where(Page.audit_id == audit_id, Page.url.in_(urls))
         ).scalars()
@@ -57,6 +57,7 @@ def upsert_pages(
             if row is None:
                 row = Page(audit_id=audit_id, url=url)
                 db.add(row)
+                existing_by_url[url] = row
             _apply_page_fields(row, payload)
             total += 1
 

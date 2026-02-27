@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
@@ -40,6 +40,7 @@ class Audit(Base):
 
 class Page(Base):
     __tablename__ = "pages"
+    __table_args__ = (UniqueConstraint("audit_id", "url", name="uq_pages_audit_url"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     audit_id: Mapped[int] = mapped_column(ForeignKey("audits.id"), nullable=False, index=True)

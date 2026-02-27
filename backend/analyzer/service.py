@@ -58,8 +58,13 @@ def analyze_audit(db: Session, audit_id: int, rules: list[Rule] | None = None) -
 
     issues_created = 0
     by_priority = {"P0": 0, "P1": 0, "P2": 0, "P3": 0}
+    seen_issue_keys: set[tuple[str, int | None, str | None, str]] = set()
     for candidate in result.issue_candidates:
         priority = candidate.resolve_priority()
+        dedupe_key = (candidate.rule_id, candidate.page_id, candidate.affected_url, candidate.title)
+        if dedupe_key in seen_issue_keys:
+            continue
+        seen_issue_keys.add(dedupe_key)
         issue = Issue(
             audit_id=audit_id,
             page_id=candidate.page_id,
