@@ -161,3 +161,24 @@ def test_status_endpoint_returns_404_when_missing() -> None:
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Audit not found"
+
+
+def test_polling_contract_response_shape_has_required_keys() -> None:
+    client, session_local = _build_client_and_session()
+    try:
+        audit_id = _seed_audit_status_case(
+            session_local,
+            status="analyzing",
+            progress=72,
+            crawl_errors=[],
+            pages_crawled=33,
+        )
+        response = client.get(f"/audits/{audit_id}/status")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert set(payload.keys()) == {"audit_id", "status", "progress", "pages_crawled", "errors"}
+    assert payload["status"] == "analyzing"
+    assert payload["progress"] == 72
