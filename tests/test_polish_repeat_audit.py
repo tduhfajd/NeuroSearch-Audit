@@ -200,6 +200,8 @@ def test_repeat_audit_cycle_generates_isolated_results(
         first_issues = db.query(Issue).filter(Issue.audit_id == first_audit_id).all()
         second_issues = db.query(Issue).filter(Issue.audit_id == second_audit_id).all()
         reports = db.query(Report).filter(Report.type == "kp").all()
+        first_audit_reports = db.query(Report).filter(Report.audit_id == first_audit_id).all()
+        second_audit_reports = db.query(Report).filter(Report.audit_id == second_audit_id).all()
 
     assert summary_one.audit_id == first_audit_id
     assert summary_two.audit_id == second_audit_id
@@ -207,3 +209,5 @@ def test_repeat_audit_cycle_generates_isolated_results(
     assert len(second_issues) == 1
     assert first_report.file_path != second_report.file_path
     assert len(reports) == 2
+    assert len(first_audit_reports) == 1
+    assert len(second_audit_reports) == 1
