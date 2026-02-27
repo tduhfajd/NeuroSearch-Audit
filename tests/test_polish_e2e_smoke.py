@@ -6,12 +6,12 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from backend.crawler.jobs import run_crawl_job
 from backend.db import session as db_session_module
-from backend.db.models import Audit, Base, Page
+from backend.db.models import Audit, Base
 from backend.main import app
 
 
@@ -114,13 +114,17 @@ def test_content_site_full_chain_smoke_generates_pdf(
     try:
         monkeypatch.setattr("backend.routers.audits.enqueue_crawl_job", lambda audit_id: "job-1")
         monkeypatch.setattr(
-            "backend.crawler.jobs.execute_crawl_pipeline", lambda audit: _fake_crawl_result(js_heavy=False)
+            "backend.crawler.jobs.execute_crawl_pipeline",
+            lambda audit: _fake_crawl_result(js_heavy=False),
         )
         monkeypatch.setattr("backend.analyzer.ai_bridge.session_health", lambda _: (True, "ok"))
         monkeypatch.setattr("backend.reports.service.session_health", lambda: (True, "ok"))
         monkeypatch.setattr("backend.routers.audits.PlaywrightChatGPTTransport", _AITransport)
         monkeypatch.setattr("backend.reports.service.REPORTS_DIR", tmp_path)
-        monkeypatch.setattr("backend.reports.service.DEFAULT_CHATGPT_TRANSPORT_FACTORY", _SummaryTransport)
+        monkeypatch.setattr(
+            "backend.reports.service.DEFAULT_CHATGPT_TRANSPORT_FACTORY",
+            _SummaryTransport,
+        )
 
         create_response = client.post(
             "/audits",
@@ -157,13 +161,17 @@ def test_js_heavy_full_chain_smoke_keeps_non_fatal_behavior_js_heavy(
     try:
         monkeypatch.setattr("backend.routers.audits.enqueue_crawl_job", lambda audit_id: "job-1")
         monkeypatch.setattr(
-            "backend.crawler.jobs.execute_crawl_pipeline", lambda audit: _fake_crawl_result(js_heavy=True)
+            "backend.crawler.jobs.execute_crawl_pipeline",
+            lambda audit: _fake_crawl_result(js_heavy=True),
         )
         monkeypatch.setattr("backend.analyzer.ai_bridge.session_health", lambda _: (True, "ok"))
         monkeypatch.setattr("backend.reports.service.session_health", lambda: (True, "ok"))
         monkeypatch.setattr("backend.routers.audits.PlaywrightChatGPTTransport", _AITransport)
         monkeypatch.setattr("backend.reports.service.REPORTS_DIR", tmp_path)
-        monkeypatch.setattr("backend.reports.service.DEFAULT_CHATGPT_TRANSPORT_FACTORY", _SummaryTransport)
+        monkeypatch.setattr(
+            "backend.reports.service.DEFAULT_CHATGPT_TRANSPORT_FACTORY",
+            _SummaryTransport,
+        )
 
         create_response = client.post(
             "/audits",
