@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from backend.config import settings
 from backend.routers.audits import router as audits_router
+from backend.routers.reports import router as reports_router
 
 
 def _check_db_socket(database_url: str) -> bool:
@@ -39,6 +40,7 @@ def create_app() -> FastAPI:
         return {"status": "ok" if _check_db_socket(settings.database_url) else "degraded"}
 
     app.include_router(audits_router, prefix="/audits", tags=["audits"])
+    app.include_router(reports_router, prefix="/audits", tags=["reports"])
     return app
 
 
