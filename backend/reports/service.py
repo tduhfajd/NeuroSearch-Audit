@@ -108,7 +108,7 @@ def generate_report_artifact(
     audit_id: int,
     report_type: str,
     storage_dir: Path = REPORTS_DIR,
-    summary_transport_factory: type[SummaryTransport] = DEFAULT_CHATGPT_TRANSPORT_FACTORY,
+    summary_transport_factory: type[SummaryTransport] | None = None,
 ) -> ReportGenerationResult:
     ok, detail = session_health()
     if not ok:
@@ -119,7 +119,8 @@ def generate_report_artifact(
 
     context = build_report_context(db, audit_id).payload
     recommendations = _extract_ai_text(db, audit_id)
-    summary_transport = summary_transport_factory()
+    transport_factory = summary_transport_factory or DEFAULT_CHATGPT_TRANSPORT_FACTORY
+    summary_transport = transport_factory()
     executive_summary = _generate_executive_summary(context, recommendations, summary_transport)
     counts = context["facts"]["by_priority_count"]
     package = choose_package(
