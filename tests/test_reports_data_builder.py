@@ -9,6 +9,12 @@ from sqlalchemy.pool import StaticPool
 
 from backend.db.models import Audit, Base, Issue, Page
 from backend.reports.data_builder import build_report_context
+from backend.reports.package_selector import (
+    PACKAGE_AUTHORITY,
+    PACKAGE_GROWTH,
+    PACKAGE_START,
+    choose_package,
+)
 
 
 def _make_session() -> Session:
@@ -94,3 +100,20 @@ def test_missing_data_raises_error() -> None:
     with pytest.raises(ValueError, match="seo_score is required"):
         build_report_context(db, audit.id)
 
+
+def test_package_selector_thresholds() -> None:
+    authority = choose_package(p0_count=3, p1_count=0, p2_count=0)
+    growth = choose_package(p0_count=1, p1_count=1, p2_count=0)
+    start = choose_package(p0_count=0, p1_count=1, p2_count=2)
+
+    assert authority.package_name == PACKAGE_AUTHORITY
+    assert growth.package_name == PACKAGE_GROWTH
+    assert start.package_name == PACKAGE_START
+
+
+def test_package_selector_returns_deterministic_trigger_metrics() -> None:
+    decision = choose_package(p0_count=2, p1_count=5, p2_count=3)
+
+    assert decision.trigger_metrics == {"P0": 2, "P1": 5, "P2": 3}
+    assert isinstance(decision.rationale, str)
+    assert decision.rationale
