@@ -15,6 +15,17 @@ from backend.main import app
 from backend.reports.service import ReportServiceError, generate_report_artifact
 
 
+class _FakeTransport:
+    def send_prompt(self, prompt: str) -> str:
+        assert "TOP_RECOMMENDATIONS" in prompt
+        return "Ключевые технические проблемы ограничивают видимость; приоритет — исправление P1 и структура контента."
+
+
+class _EmptyTransport:
+    def send_prompt(self, prompt: str) -> str:  # noqa: ARG002
+        return ""
+
+
 def _build_session():
     engine = create_engine(
         "sqlite+pysqlite:///:memory:",
@@ -89,6 +100,7 @@ def test_service_generates_and_persists_report(
             audit_id=audit_id,
             report_type="full_report",
             storage_dir=tmp_path,
+            summary_transport_factory=_FakeTransport,
         )
         persisted = db.query(Report).filter(Report.audit_id == audit_id).all()
 
@@ -126,9 +138,19 @@ def test_persistence_writes_distinct_records_for_report_types(
 
     with session_local() as db:
         generate_report_artifact(
-            db, audit_id=audit_id, report_type="full_report", storage_dir=tmp_path
+            db,
+            audit_id=audit_id,
+            report_type="full_report",
+            storage_dir=tmp_path,
+            summary_transport_factory=_FakeTransport,
         )
-        generate_report_artifact(db, audit_id=audit_id, report_type="kp", storage_dir=tmp_path)
+        generate_report_artifact(
+            db,
+            audit_id=audit_id,
+            report_type="kp",
+            storage_dir=tmp_path,
+            summary_transport_factory=_FakeTransport,
+        )
         rows = db.query(Report).filter(Report.audit_id == audit_id).order_by(Report.id.asc()).all()
 
     assert [row.type for row in rows] == ["full_report", "kp"]
@@ -140,6 +162,7 @@ def test_report_pdf_endpoint_returns_download(
     client, session_local = _build_client_and_session()
     monkeypatch.setattr("backend.reports.service.session_health", lambda: (True, "ok"))
     monkeypatch.setattr("backend.reports.service.REPORTS_DIR", tmp_path)
+    monkeypatch.setattr("backend.reports.service.DEFAULT_CHATGPT_TRANSPORT_FACTORY", _FakeTransport)
     try:
         audit_id = _seed_audit_data(session_local)
         response = client.get(f"/audits/{audit_id}/report/pdf")
@@ -157,6 +180,7 @@ def test_report_kp_endpoint_returns_download(
     client, session_local = _build_client_and_session()
     monkeypatch.setattr("backend.reports.service.session_health", lambda: (True, "ok"))
     monkeypatch.setattr("backend.reports.service.REPORTS_DIR", tmp_path)
+    monkeypatch.setattr("backend.reports.service.DEFAULT_CHATGPT_TRANSPORT_FACTORY", _FakeTransport)
     try:
         audit_id = _seed_audit_data(session_local)
         response = client.get(f"/audits/{audit_id}/report/kp")
@@ -185,6 +209,7 @@ def test_reports_e2e_generation_persists_rows(
     client, session_local = _build_client_and_session()
     monkeypatch.setattr("backend.reports.service.session_health", lambda: (True, "ok"))
     monkeypatch.setattr("backend.reports.service.REPORTS_DIR", tmp_path)
+    monkeypatch.setattr("backend.reports.service.DEFAULT_CHATGPT_TRANSPORT_FACTORY", _FakeTransport)
     try:
         audit_id = _seed_audit_data(session_local)
         pdf_response = client.get(f"/audits/{audit_id}/report/pdf")
@@ -199,3 +224,23 @@ def test_reports_e2e_generation_persists_rows(
     assert pdf_response.status_code == 200
     assert kp_response.status_code == 200
     assert [row.type for row in rows] == ["full_report", "kp"]
+
+
+def test_service_fails_when_ai_summary_is_empty(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    session_local = _build_session()
+    audit_id = _seed_audit_data(session_local)
+    monkeypatch.setattr("backend.reports.service.session_health", lambda: (True, "ok"))
+
+    with session_local() as db:
+        with pytest.raises(ReportServiceError, match="Executive summary is empty") as exc:
+            generate_report_artifact(
+                db,
+                audit_id=audit_id,
+                report_type="full_report",
+                storage_dir=tmp_path,
+                summary_transport_factory=_EmptyTransport,
+            )
+
+    assert exc.value.code == "ai_text_unavailable"
