@@ -119,3 +119,29 @@ def test_interval_cleanup_is_implemented_when_view_changes() -> None:
     assert "stopProgressPolling" in html
     assert "clearInterval(this.progressPollTimer)" in html
     assert 'this.view === "progress" && nextView !== "progress"' in html
+
+
+def test_results_panels_render_tech_health_and_ai_readiness() -> None:
+    html = _read_index()
+
+    assert "Tech Health" in html
+    assert "AI Readiness" in html
+    assert "SEO Score" in html
+    assert "AVRI" in html
+
+
+def test_issue_map_and_accordion_markup_are_present() -> None:
+    html = _read_index()
+
+    assert "Issue Map" in html
+    assert "togglePriority" in html
+    assert "openedPriorities" in html
+    assert "issue.recommendation" in html
+
+
+def test_results_view_includes_reauth_required_banner_logic() -> None:
+    html = _read_index()
+
+    assert "Требуется переавторизация ChatGPT" in html
+    assert "aiReauthRequired" in html
+    assert "detailPayload?.detail?.code === \"reauth_required\"" in html
