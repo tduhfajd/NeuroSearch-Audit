@@ -61,3 +61,33 @@ def test_deterministic_filename_format() -> None:
 
     assert filename.startswith("audit_42_full_report_")
     assert filename.endswith(".pdf")
+
+
+def test_template_sections_and_valid_pdf_smoke() -> None:
+    context = {
+        "audit": {
+            "url": "https://example.com",
+            "client_name": "ООО Тест",
+            "seo_score": 72.0,
+            "avri_score": 58.0,
+        },
+        "facts": {"by_priority_count": {"P0": 0, "P1": 1, "P2": 2, "P3": 3}},
+        "package": {"package_name": "Growth", "rationale": "Есть P1 и P2"},
+        "executive_summary": "Сайт требует точечной технической доработки.",
+        "recommendations": ["Исправить canonical", "Добавить FAQ schema"],
+        "work_scope": ["Технические фиксы", "Контентная оптимизация"],
+        "expected_impact": "Рост качества индексации и AI-видимости",
+    }
+
+    report_html = render_html("report_full.html", context)
+    kp_html = render_html("report_kp.html", context)
+
+    assert "Issue Map" in report_html
+    assert "Recommendations" in report_html
+    assert "Коммерческое предложение" in kp_html
+    assert "Выбранный пакет" in kp_html
+
+    report_pdf = html_to_pdf_bytes(report_html)
+    kp_pdf = html_to_pdf_bytes(kp_html)
+    assert report_pdf.startswith(b"%PDF")
+    assert kp_pdf.startswith(b"%PDF")
