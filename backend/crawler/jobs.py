@@ -177,6 +177,13 @@ def _merge_meta(meta: dict[str, Any] | None, patch: dict[str, Any]) -> dict[str,
     return current
 
 
+def _error_payload(exc: Exception) -> dict[str, Any]:
+    message = str(exc) or exc.__class__.__name__
+    if isinstance(exc, TimeoutError):
+        return {"code": "timeout", "message": message, "retryable": True}
+    return {"code": "crawler_error", "message": message, "retryable": False}
+
+
 def run_crawl_job(audit_id: int, db_session: Session | None = None) -> None:
     manage_session = db_session is None
     db = db_session or SessionLocal()
@@ -212,7 +219,14 @@ def run_crawl_job(audit_id: int, db_session: Session | None = None) -> None:
         audit = db.get(Audit, audit_id)
         if audit is not None:
             audit.status = "failed"
-            audit.meta = _merge_meta(audit.meta, {"error": str(exc), "progress": 100})
+            audit.meta = _merge_meta(
+                audit.meta,
+                {
+                    "error": _error_payload(exc),
+                    "crawl_errors": [*(_extract_crawl_errors(audit.meta)), _error_payload(exc)],
+                    "progress": 100,
+                },
+            )
             db.commit()
         raise
     finally:
@@ -223,3 +237,17 @@ def run_crawl_job(audit_id: int, db_session: Session | None = None) -> None:
 def queue_snapshot_json() -> str:
     queue = get_queue_client()
     return json.dumps([{"job_id": job.job_id, "args": job.args} for job in queue.jobs])
+
+
+def _extract_crawl_errors(meta: dict[str, Any] | None) -> list[dict[str, Any]]:
+    payload = meta if isinstance(meta, dict) else {}
+    value = payload.get("crawl_errors")
+    if not isinstance(value, list):
+        return []
+    normalized: list[dict[str, Any]] = []
+    for item in value:
+        if isinstance(item, dict):
+            normalized.append(item)
+        elif isinstance(item, str):
+            normalized.append({"code": "crawler_error", "message": item, "retryable": False})
+    return normalized

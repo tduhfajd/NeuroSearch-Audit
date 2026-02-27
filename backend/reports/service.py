@@ -23,9 +23,10 @@ REPORTS_DIR = Path("generated_reports")
 
 
 class ReportServiceError(RuntimeError):
-    def __init__(self, code: str, message: str) -> None:
+    def __init__(self, code: str, message: str, *, retryable: bool = False) -> None:
         super().__init__(message)
         self.code = code
+        self.retryable = retryable
 
 
 @dataclass(slots=True)
@@ -93,16 +94,24 @@ def _generate_executive_summary(
         raise ReportServiceError("reauth_required", str(exc)) from exc
     except RateLimitError as exc:
         raise ReportServiceError(
-            "ai_text_unavailable", "AI rate limit while generating summary"
+            "rate_limit",
+            "AI rate limit while generating summary",
+            retryable=True,
         ) from exc
     except Exception as exc:  # noqa: BLE001
         raise ReportServiceError(
-            "ai_text_unavailable", "Failed to generate executive summary"
+            "ai_text_unavailable",
+            "Failed to generate executive summary",
+            retryable=True,
         ) from exc
 
     summary = response.strip()
     if not summary:
-        raise ReportServiceError("ai_text_unavailable", "Executive summary is empty")
+        raise ReportServiceError(
+            "ai_text_unavailable",
+            "Executive summary is empty",
+            retryable=True,
+        )
     return summary
 
 
@@ -116,10 +125,10 @@ def generate_report_artifact(
 ) -> ReportGenerationResult:
     ok, detail = session_health()
     if not ok:
-        raise ReportServiceError("reauth_required", detail)
+        raise ReportServiceError("reauth_required", detail, retryable=False)
 
     if report_type not in {"full_report", "kp"}:
-        raise ReportServiceError("invalid_report_type", "Unsupported report type")
+        raise ReportServiceError("invalid_report_type", "Unsupported report type", retryable=False)
 
     context = build_report_context(db, audit_id).payload
     recommendations = _extract_ai_text(db, audit_id)
@@ -171,7 +180,11 @@ def generate_report_artifact(
         db.commit()
     except SQLAlchemyError as exc:
         db.rollback()
-        raise ReportServiceError("persistence_error", "Failed to persist generated report") from exc
+        raise ReportServiceError(
+            "persistence_error",
+            "Failed to persist generated report",
+            retryable=True,
+        ) from exc
 
     return ReportGenerationResult(
         audit_id=audit_id,

@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from backend.analyzer.ai_bridge import (
+    DomainError,
     PlaywrightChatGPTTransport,
     ReauthRequiredError,
     run_ai_analyze,
@@ -17,6 +18,10 @@ from backend.db.models import Audit, Issue
 from backend.db.session import get_db
 
 router = APIRouter()
+
+
+def _error_detail(code: str, message: str, *, retryable: bool) -> dict[str, object]:
+    return {"code": code, "message": message, "retryable": retryable}
 
 
 class AuditGoal(StrEnum):
@@ -132,7 +137,7 @@ def _extract_crawl_errors(audit: Audit) -> list[str]:
             normalized.append(item)
             continue
         if isinstance(item, dict):
-            message = item.get("error")
+            message = item.get("message") or item.get("error")
             if isinstance(message, str):
                 normalized.append(message)
     return normalized
@@ -237,11 +242,20 @@ async def ai_analyze_audit_endpoint(
     try:
         summary = run_ai_analyze(db, audit_id, transport=PlaywrightChatGPTTransport())
     except LookupError as exc:
-        raise HTTPException(status_code=404, detail="Audit not found") from exc
+        raise HTTPException(
+            status_code=404,
+            detail=_error_detail("not_found", "Audit not found", retryable=False),
+        ) from exc
     except ReauthRequiredError as exc:
         raise HTTPException(
             status_code=409,
-            detail={"code": "reauth_required", "message": str(exc)},
+            detail=_error_detail(exc.code, str(exc), retryable=exc.retryable),
+        ) from exc
+    except DomainError as exc:
+        status_code = 429 if exc.code == "rate_limit" else 422
+        raise HTTPException(
+            status_code=status_code,
+            detail=_error_detail(exc.code, str(exc), retryable=exc.retryable),
         ) from exc
     except SQLAlchemyError as exc:
         db.rollback()

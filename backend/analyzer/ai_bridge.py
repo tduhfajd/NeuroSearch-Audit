@@ -23,12 +23,21 @@ from backend.analyzer.scoring import calculate_avri_score
 from backend.db.models import Audit, Page
 
 
-class ReauthRequiredError(RuntimeError):
-    pass
+class DomainError(RuntimeError):
+    def __init__(self, code: str, message: str, *, retryable: bool) -> None:
+        super().__init__(message)
+        self.code = code
+        self.retryable = retryable
 
 
-class RateLimitError(RuntimeError):
-    pass
+class ReauthRequiredError(DomainError):
+    def __init__(self, message: str) -> None:
+        super().__init__("reauth_required", message, retryable=False)
+
+
+class RateLimitError(DomainError):
+    def __init__(self, message: str) -> None:
+        super().__init__("rate_limit", message, retryable=True)
 
 
 class ChatGPTTransport(Protocol):

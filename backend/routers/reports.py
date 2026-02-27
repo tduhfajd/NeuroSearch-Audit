@@ -10,6 +10,10 @@ from backend.reports.service import ReportServiceError, generate_report_artifact
 router = APIRouter()
 
 
+def _error_detail(code: str, message: str, *, retryable: bool) -> dict[str, object]:
+    return {"code": code, "message": message, "retryable": retryable}
+
+
 @router.get("/{audit_id}/report/pdf")
 async def download_report_pdf(
     audit_id: int,
@@ -18,15 +22,15 @@ async def download_report_pdf(
     try:
         artifact = generate_report_artifact(db, audit_id=audit_id, report_type="full_report")
     except LookupError as exc:
-        raise HTTPException(status_code=404, detail="Audit not found") from exc
-    except ReportServiceError as exc:
-        if exc.code == "reauth_required":
-            raise HTTPException(
-                status_code=409,
-                detail={"code": "reauth_required", "message": str(exc)},
-            ) from exc
         raise HTTPException(
-            status_code=422, detail={"code": exc.code, "message": str(exc)}
+            status_code=404,
+            detail=_error_detail("not_found", "Audit not found", retryable=False),
+        ) from exc
+    except ReportServiceError as exc:
+        status_code = 409 if exc.code == "reauth_required" else 422
+        raise HTTPException(
+            status_code=status_code,
+            detail=_error_detail(exc.code, str(exc), retryable=exc.retryable),
         ) from exc
 
     return FileResponse(
@@ -44,15 +48,15 @@ async def download_report_kp(
     try:
         artifact = generate_report_artifact(db, audit_id=audit_id, report_type="kp")
     except LookupError as exc:
-        raise HTTPException(status_code=404, detail="Audit not found") from exc
-    except ReportServiceError as exc:
-        if exc.code == "reauth_required":
-            raise HTTPException(
-                status_code=409,
-                detail={"code": "reauth_required", "message": str(exc)},
-            ) from exc
         raise HTTPException(
-            status_code=422, detail={"code": exc.code, "message": str(exc)}
+            status_code=404,
+            detail=_error_detail("not_found", "Audit not found", retryable=False),
+        ) from exc
+    except ReportServiceError as exc:
+        status_code = 409 if exc.code == "reauth_required" else 422
+        raise HTTPException(
+            status_code=status_code,
+            detail=_error_detail(exc.code, str(exc), retryable=exc.retryable),
         ) from exc
 
     return FileResponse(
