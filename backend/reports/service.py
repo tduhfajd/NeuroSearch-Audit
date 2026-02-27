@@ -56,7 +56,11 @@ def _reserve_report_path(storage_dir: Path, file_name: str) -> Path:
         candidate = storage_dir / f"{stem}_{idx}{suffix}"
         if not candidate.exists():
             return candidate
-    raise ReportServiceError("persistence_error", "Failed to reserve report file path", retryable=True)
+    raise ReportServiceError(
+        "persistence_error",
+        "Failed to reserve report file path",
+        retryable=True,
+    )
 
 
 def _extract_ai_text(db: Session, audit_id: int) -> tuple[str, list[str]]:
