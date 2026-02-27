@@ -25,6 +25,7 @@ build/
 # Runtime files
 *.log
 reports/output/
+generated_reports/
 
 # Local playbook/docs (keep local only)
 phase-forge-playbook/
