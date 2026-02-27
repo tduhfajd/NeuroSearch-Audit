@@ -96,7 +96,77 @@
 
       <section x-show="view === 'create'" x-cloak class="rounded-2xl border border-slate-200 bg-white p-6">
         <h2 class="text-xl font-semibold">Запуск нового аудита</h2>
-        <p class="mt-2 text-sm text-slate-600">Здесь будет форма запуска аудита.</p>
+        <form class="mt-4 space-y-4" @submit.prevent="submitCreateAudit()">
+          <label class="block">
+            <span class="mb-1 block text-sm font-medium">URL сайта</span>
+            <input
+              x-model.trim="createForm.url"
+              type="url"
+              required
+              placeholder="https://example.ru"
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            />
+          </label>
+
+          <div class="grid gap-4 md:grid-cols-2">
+            <label class="block">
+              <span class="mb-1 block text-sm font-medium">Ниша</span>
+              <input
+                x-model.trim="createForm.niche"
+                type="text"
+                placeholder="B2B SaaS"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+            </label>
+
+            <label class="block">
+              <span class="mb-1 block text-sm font-medium">Регион</span>
+              <input
+                x-model.trim="createForm.region"
+                type="text"
+                placeholder="Москва"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+            </label>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-2">
+            <label class="block">
+              <span class="mb-1 block text-sm font-medium">Цель</span>
+              <select x-model="createForm.goal" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                <option value="leads">Лиды</option>
+                <option value="info">Инфо</option>
+                <option value="local">Локал</option>
+                <option value="b2b">B2B</option>
+              </select>
+            </label>
+
+            <label class="block">
+              <span class="mb-1 block text-sm font-medium">Глубина краулинга</span>
+              <select
+                x-model.number="createForm.crawl_depth"
+                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              >
+                <option :value="50">50</option>
+                <option :value="200">200</option>
+                <option :value="500">500</option>
+              </select>
+            </label>
+          </div>
+
+          <div x-show="createError" x-cloak class="rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+            <span x-text="createError"></span>
+          </div>
+
+          <button
+            type="submit"
+            class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+            :disabled="creatingAudit"
+          >
+            <span x-show="!creatingAudit">Запустить аудит</span>
+            <span x-show="creatingAudit" x-cloak>Запуск...</span>
+          </button>
+        </form>
       </section>
 
       <section x-show="view === 'progress'" x-cloak class="rounded-2xl border border-slate-200 bg-white p-6">
@@ -119,6 +189,15 @@
           statusFilter: "all",
           loadingAudits: false,
           listError: "",
+          creatingAudit: false,
+          createError: "",
+          createForm: {
+            url: "",
+            niche: "",
+            region: "",
+            goal: "leads",
+            crawl_depth: 200,
+          },
 
           init() {
             this.syncFromUrl();
@@ -223,6 +302,36 @@
           formatScore(value) {
             if (value === null || value === undefined) return "—";
             return Number(value).toFixed(1);
+          },
+
+          async submitCreateAudit() {
+            this.creatingAudit = true;
+            this.createError = "";
+
+            try {
+              const payload = {
+                url: this.createForm.url,
+                niche: this.createForm.niche || null,
+                region: this.createForm.region || null,
+                goal: this.createForm.goal,
+                crawl_depth: this.createForm.crawl_depth,
+              };
+              const response = await fetch("/audits", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              });
+              if (!response.ok) {
+                throw new Error("Не удалось запустить аудит. Проверьте данные формы.");
+              }
+              const createdAudit = await response.json();
+              await this.loadAudits();
+              this.setView("progress", createdAudit.id);
+            } catch (error) {
+              this.createError = error instanceof Error ? error.message : "Ошибка отправки формы";
+            } finally {
+              this.creatingAudit = false;
+            }
           },
         };
       }

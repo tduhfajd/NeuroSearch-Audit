@@ -72,3 +72,26 @@ def test_columns_match_dashboard_list_contract() -> None:
     assert "SEO Score" in html
     assert "AVRI" in html
     assert "Статус" in html
+
+
+def test_create_form_contains_required_inputs() -> None:
+    html = _read_index()
+
+    assert "Запуск нового аудита" in html
+    assert "x-model.trim=\"createForm.url\"" in html
+    assert "x-model=\"createForm.goal\"" in html
+    assert "x-model.number=\"createForm.crawl_depth\"" in html
+
+
+def test_submit_flow_posts_to_audits_endpoint() -> None:
+    html = _read_index()
+
+    assert "@submit.prevent=\"submitCreateAudit()\"" in html
+    assert "await fetch(\"/audits\"" in html
+    assert "method: \"POST\"" in html
+
+
+def test_progress_redirect_after_successful_submit() -> None:
+    html = _read_index()
+
+    assert "this.setView(\"progress\", createdAudit.id)" in html
