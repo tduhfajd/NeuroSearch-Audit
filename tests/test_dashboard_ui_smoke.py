@@ -144,4 +144,4 @@ def test_results_view_includes_reauth_required_banner_logic() -> None:
 
     assert "Требуется переавторизация ChatGPT" in html
     assert "aiReauthRequired" in html
-    assert "detailPayload?.detail?.code === \"reauth_required\"" in html
+    assert 'detailPayload?.detail?.code === "reauth_required"' in html
