@@ -232,6 +232,20 @@
                 <span x-show="!aiAnalyzeLoading">Запустить AI-анализ</span>
                 <span x-show="aiAnalyzeLoading" x-cloak>Запуск AI...</span>
               </button>
+              <button
+                type="button"
+                class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+                @click="downloadReport('pdf')"
+              >
+                PDF-отчет
+              </button>
+              <button
+                type="button"
+                class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+                @click="downloadReport('kp')"
+              >
+                Скачать КП
+              </button>
               <span x-show="aiAnalyzeError" x-cloak class="text-sm text-rose-700" x-text="aiAnalyzeError"></span>
             </div>
 
@@ -512,6 +526,15 @@
             } finally {
               this.aiAnalyzeLoading = false;
             }
+          },
+
+          downloadReport(kind) {
+            if (!this.auditId) return;
+            if (kind === "pdf") {
+              window.location.href = `/audits/${this.auditId}/report/pdf`;
+              return;
+            }
+            window.location.href = `/audits/${this.auditId}/report/kp`;
           },
 
           stopProgressPolling() {

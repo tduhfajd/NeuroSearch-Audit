@@ -145,3 +145,14 @@ def test_results_view_includes_reauth_required_banner_logic() -> None:
     assert "Требуется переавторизация ChatGPT" in html
     assert "aiReauthRequired" in html
     assert 'detailPayload?.detail?.code === "reauth_required"' in html
+
+
+def test_results_view_includes_download_buttons() -> None:
+    html = _read_index()
+
+    assert "PDF-отчет" in html
+    assert "Скачать КП" in html
+    assert "downloadReport('pdf')" in html
+    assert "downloadReport('kp')" in html
+    assert "window.location.href = `/audits/${this.auditId}/report/pdf`" in html
+    assert "window.location.href = `/audits/${this.auditId}/report/kp`" in html

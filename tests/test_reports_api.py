@@ -165,3 +165,23 @@ def test_not_found_returns_404_for_reports() -> None:
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Audit not found"
+
+
+def test_reports_e2e_generation_persists_rows(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    client, session_local = _build_client_and_session()
+    monkeypatch.setattr("backend.reports.service.session_health", lambda: (True, "ok"))
+    monkeypatch.setattr("backend.reports.service.REPORTS_DIR", tmp_path)
+    try:
+        audit_id = _seed_audit_data(session_local)
+        pdf_response = client.get(f"/audits/{audit_id}/report/pdf")
+        kp_response = client.get(f"/audits/{audit_id}/report/kp")
+        with session_local() as db:
+            rows = db.query(Report).filter(Report.audit_id == audit_id).order_by(Report.id.asc()).all()
+    finally:
+        app.dependency_overrides.clear()
+
+    assert pdf_response.status_code == 200
+    assert kp_response.status_code == 200
+    assert [row.type for row in rows] == ["full_report", "kp"]
