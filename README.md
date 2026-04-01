@@ -1,6 +1,14 @@
 # NeuroSearch Analyzer
 
 <p align="center">
+  <img src="https://img.shields.io/badge/Python-3.x-3776AB?logo=python&logoColor=white" alt="Python 3"/>
+  <img src="https://img.shields.io/badge/Go-Enabled-00ADD8?logo=go&logoColor=white" alt="Go"/>
+  <img src="https://img.shields.io/badge/Node.js-Required-339933?logo=node.js&logoColor=white" alt="Node.js"/>
+  <img src="https://img.shields.io/badge/Reports-PDF%20%7C%20HTML%20%7C%20DOCX%20%7C%20MD-6f42c1" alt="Reports"/>
+  <img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-24292f" alt="Platforms"/>
+</p>
+
+<p align="center">
   <strong>Локальная система аудита сайтов с готовыми клиентскими отчетами</strong><br/>
   SEO · GEO · AEO · AIO · LEO
 </p>
@@ -24,6 +32,10 @@
 - [Что получится после запуска](#что-получится-после-запуска)
 - [Очистка сгенерированных файлов](#очистка-сгенерированных-файлов)
 - [Если что-то не работает](#если-что-то-не-работает)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [Security](#security)
+- [License](#license)
 - [Автор](#автор)
 
 ## О проекте
@@ -688,6 +700,42 @@ npx playwright install chromium
 - как запустить аудит одной командой и получить отчет.
 
 Внутренние архитектурные документы, схемы и контракты остаются в папке `docs/`, но для обычного использования они не нужны.
+
+## Roadmap
+
+- [ ] Стабилизировать формат индексов и рекомендаций для разных ниш.
+- [ ] Добавить больше примеров готовых отчетов для разных типов сайтов.
+- [ ] Расширить покрытие smoke-check'ов для установки на macOS, Linux и Windows.
+- [ ] Подготовить отдельный раздел с best practices по брендингу отчетов.
+- [ ] Добавить быстрые профили запуска для типовых сценариев аудита.
+
+## Contributing
+
+Вклад в проект приветствуется:
+
+1. Сделайте форк репозитория.
+2. Создайте ветку под задачу: `feature/<short-name>` или `fix/<short-name>`.
+3. Внесите изменения с минимальным и понятным diff.
+4. Проверьте запуск локально (минимум `make check` или эквивалентные команды).
+5. Откройте Pull Request с кратким описанием: что изменили и зачем.
+
+Подробные правила:
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+
+## Security
+
+Если вы нашли уязвимость, пожалуйста, используйте приватный канал и не публикуйте детали в открытом issue.
+
+Подробная политика:
+- [SECURITY.md](SECURITY.md)
+
+## License
+
+Проект распространяется по лицензии MIT.
+
+Текст лицензии:
+- [LICENSE](LICENSE)
 
 ## Автор
 
