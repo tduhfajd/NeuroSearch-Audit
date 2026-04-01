@@ -1,5 +1,33 @@
 # NeuroSearch Analyzer
 
+<p align="center">
+  <strong>Локальная система аудита сайтов с готовыми клиентскими отчетами</strong><br/>
+  SEO · GEO · AEO · AIO · LEO
+</p>
+
+<p align="center">
+  <a href="examples/kuklapups/report_kuklapups.ru.pdf">Демо PDF</a> ·
+  <a href="examples/kuklapups/report_kuklapups.ru.html">Демо HTML</a> ·
+  <a href="examples/kuklapups/internal_technical_report.md">Тех. отчет</a> ·
+  <a href="#самый-короткий-путь">Быстрый старт</a>
+</p>
+
+## Содержание
+
+- [О проекте](#о-проекте)
+- [Примеры готовых отчетов](#примеры-готовых-отчетов)
+- [Что делает система](#что-делает-система)
+- [Что нужно установить](#что-нужно-установить)
+- [Самый короткий путь](#самый-короткий-путь)
+- [Быстрый запуск: одна команда](#быстрый-запуск-одна-команда)
+- [Пользовательский брендинг отчетов](#пользовательский-брендинг-отчетов)
+- [Что получится после запуска](#что-получится-после-запуска)
+- [Очистка сгенерированных файлов](#очистка-сгенерированных-файлов)
+- [Если что-то не работает](#если-что-то-не-работает)
+- [Автор](#автор)
+
+## О проекте
+
 NeuroSearch Analyzer это локальная система аудита сайтов. Она обходит сайт, собирает технические и контентные сигналы, выделяет смысловые блоки и факты, считает индексы готовности к SEO, GEO, AEO, AIO и LEO, а затем собирает готовый пакет артефактов и клиентский отчет.
 
 Система предназначена для:
@@ -400,8 +428,8 @@ python run_audit.py https://example.com --brand branding\my-brand\brand.yml
 - запускаете аудит с параметром `--brand`
 
 Готовый пример лежит здесь:
-- [branding/README.md](/Users/vadimevgrafov/NeuroSearch-Audit/branding/README.md)
-- [branding/example/brand.yml](/Users/vadimevgrafov/NeuroSearch-Audit/branding/example/brand.yml)
+- [branding/README.md](branding/README.md)
+- [branding/example/brand.yml](branding/example/brand.yml)
 
 Самый простой сценарий:
 
@@ -660,3 +688,9 @@ npx playwright install chromium
 - как запустить аудит одной командой и получить отчет.
 
 Внутренние архитектурные документы, схемы и контракты остаются в папке `docs/`, но для обычного использования они не нужны.
+
+## Автор
+
+**Вадим Евграфов**  
+Telegram: [@vadim_evgrafov](https://t.me/vadim_evgrafov)  
+Email: [vadim@evgrafov.biz](mailto:vadim@evgrafov.biz)
