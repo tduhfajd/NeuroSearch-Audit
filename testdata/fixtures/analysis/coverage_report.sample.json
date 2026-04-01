@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "audit_id": "aud_20260311T120000Z_abc1234",
+  "coverage_ruleset": "mvp-1",
+  "items": [
+    {
+      "target": "aud_20260311T120000Z_abc1234:page:example.com_service",
+      "coverage_score": 0.29,
+      "missing": ["process_steps", "terms", "proof", "pricing", "contacts"],
+      "priority": "P0",
+      "impact": ["SEO", "AIO", "conversion"],
+      "evidence": [
+        {
+          "source_url": "https://example.com/service",
+          "field": "page_type"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "targets": 1,
+    "p0": 1,
+    "p1": 0,
+    "p2": 0
+  }
+}

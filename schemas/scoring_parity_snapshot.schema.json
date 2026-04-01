@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://neurosearch-analyzer.local/schemas/scoring_parity_snapshot.schema.json",
+  "title": "Scoring Parity Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audit_id",
+    "methodology_reference",
+    "overall_status",
+    "levels",
+    "notes"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "audit_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "methodology_reference": {
+      "type": "string"
+    },
+    "overall_status": {
+      "type": "string",
+      "enum": ["not_aligned", "partial", "aligned"]
+    },
+    "levels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "level",
+          "status",
+          "current_signals",
+          "missing_legacy_capabilities"
+        ],
+        "properties": {
+          "level": {
+            "type": "string",
+            "enum": [
+              "L1_technical",
+              "L2_content",
+              "L3_semantic",
+              "L4_behavioral",
+              "L5_ai_interpretability"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["not_measured", "partial", "aligned"]
+          },
+          "current_signals": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "missing_legacy_capabilities": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  }
+}

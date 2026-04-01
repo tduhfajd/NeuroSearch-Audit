@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://neurosearch-analyzer.local/schemas/page_blocks.schema.json",
+  "title": "Page Blocks Document",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audit_id",
+    "pages"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "audit_id": {
+      "type": "string",
+      "pattern": "^aud_[0-9]{8}T[0-9]{6}Z_[a-z0-9]{6,}$"
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schema_version",
+          "audit_id",
+          "url",
+          "page_type",
+          "blocks",
+          "facts",
+          "updated_at"
+        ],
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+          },
+          "audit_id": {
+            "type": "string",
+            "pattern": "^aud_[0-9]{8}T[0-9]{6}Z_[a-z0-9]{6,}$"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "page_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "type",
+                "present",
+                "confidence",
+                "evidence"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "present": {
+                  "type": "boolean"
+                },
+                "confidence": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "evidence": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "source_url",
+                      "field"
+                    ],
+                    "properties": {
+                      "source_url": {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      "field": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "facts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "fact_type",
+                "value",
+                "evidence"
+              ],
+              "properties": {
+                "fact_type": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "evidence": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "source_url",
+                      "field"
+                    ],
+                    "properties": {
+                      "source_url": {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      "field": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}

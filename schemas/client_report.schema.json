@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://neurosearch-analyzer.local/schemas/client_report.schema.json",
+  "title": "Client Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audit_id",
+    "package_status",
+    "methodology",
+    "title",
+    "site",
+    "sections"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "audit_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "package_status": {
+      "type": "string",
+      "enum": ["approved"]
+    },
+    "methodology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "score_engine",
+        "legacy_reference",
+        "report_parity",
+        "score_parity"
+      ],
+      "properties": {
+        "score_engine": {"type": "string"},
+        "legacy_reference": {"type": "string"},
+        "report_parity": {"type": "string", "enum": ["partial", "aligned"]},
+        "score_parity": {"type": "string", "enum": ["not_aligned", "aligned"]}
+      }
+    },
+    "title": {
+      "type": "string"
+    },
+    "site": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_domain", "primary_url", "site_profile"],
+      "properties": {
+        "primary_domain": {"type": "string"},
+        "primary_url": {"type": "string", "format": "uri"},
+        "site_profile": {"type": "string"}
+      }
+    },
+    "sections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "executive_summary",
+        "what_was_evaluated",
+        "index_reading_guide",
+        "indices",
+        "strengths",
+        "priority_areas",
+        "priority_area_narratives",
+        "action_plan",
+        "constraints",
+        "how_to_use"
+      ],
+      "properties": {
+        "executive_summary": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "what_was_evaluated": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "description"],
+            "properties": {
+              "label": {"type": "string"},
+              "description": {"type": "string"}
+            }
+          }
+        },
+        "index_reading_guide": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "indices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "value", "interpretation"],
+            "properties": {
+              "label": {"type": "string"},
+              "value": {"type": "number"},
+              "interpretation": {"type": "string"}
+            }
+          }
+        },
+        "strengths": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "priority_areas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "why_it_matters", "top_missing"],
+            "properties": {
+              "label": {"type": "string"},
+              "why_it_matters": {"type": "string"},
+              "top_missing": {
+                "type": "array",
+                "items": {"type": "string"}
+              }
+            }
+          }
+        },
+        "priority_area_narratives": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "why_it_matters", "current_state"],
+            "properties": {
+              "label": {"type": "string"},
+              "why_it_matters": {"type": "string"},
+              "current_state": {"type": "string"}
+            }
+          }
+        },
+        "action_plan": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["priority", "summary", "expected_impact", "related_findings_count"],
+            "properties": {
+              "priority": {"type": "string"},
+              "summary": {"type": "string"},
+              "expected_impact": {"type": "string"},
+              "related_findings_count": {"type": "integer", "minimum": 0}
+            }
+          }
+        },
+        "constraints": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "how_to_use": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["audience", "guidance"],
+            "properties": {
+              "audience": {"type": "string"},
+              "guidance": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

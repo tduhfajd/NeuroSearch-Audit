@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://neurosearch-analyzer.local/schemas/rendered_page.schema.json",
+  "title": "Rendered Page Artifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audit_id",
+    "url",
+    "render_mode",
+    "final_url",
+    "html",
+    "rendered_at",
+    "signals"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "audit_id": {
+      "type": "string",
+      "pattern": "^aud_[0-9]{8}T[0-9]{6}Z_[a-z0-9]{6,}$"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "render_mode": {
+      "type": "string",
+      "minLength": 1
+    },
+    "final_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "html": {
+      "type": "string"
+    },
+    "rendered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "network_requests"
+      ],
+      "properties": {
+        "network_requests": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "script_hints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

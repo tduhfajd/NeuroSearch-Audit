@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "service_live_review_case",
+  "segment": "service",
+  "page_type": "homepage",
+  "source_fixture": "testdata/fixtures/benchmark/service_live_review_brief.snapshot.json",
+  "expected_signals": {
+    "manual_tax_level": "low",
+    "fit_assessment": "good",
+    "top_gap_focus": [
+      "proof"
+    ]
+  },
+  "calibration_notes": [
+    "Service-oriented live output should stay narrow when only one homepage trust/content gap remains.",
+    "Contacts strength on service sites should remain visible without forcing commerce-specific remediation."
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://neurosearch.dev/schemas/benchmark_case.schema.json",
+  "title": "Benchmark Case",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "segment",
+    "page_type",
+    "source_fixture",
+    "expected_signals",
+    "calibration_notes"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "segment": {
+      "type": "string",
+      "enum": ["service", "content", "commercial"]
+    },
+    "page_type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_fixture": {
+      "type": "string",
+      "minLength": 1
+    },
+    "expected_signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manual_tax_level",
+        "fit_assessment",
+        "top_gap_focus"
+      ],
+      "properties": {
+        "manual_tax_level": {
+          "type": "string",
+          "enum": ["low", "medium", "high"]
+        },
+        "fit_assessment": {
+          "type": "string",
+          "enum": ["good", "acceptable_with_gaps", "poor"]
+        },
+        "top_gap_focus": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "calibration_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

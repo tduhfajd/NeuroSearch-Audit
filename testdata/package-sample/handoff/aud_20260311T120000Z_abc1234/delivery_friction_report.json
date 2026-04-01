@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "audit_id": "aud_20260311T120000Z_abc1234",
+  "recorded_at": "2026-03-11T19:30:00Z",
+  "review_artifacts": [
+    "exports/backlog.json",
+    "exports/review_brief.json",
+    "exports/review_brief.md",
+    "exports/summary.json"
+  ],
+  "handoff_events": [
+    "review_prepared",
+    "ai_handoff_sent"
+  ],
+  "manual_steps": 3,
+  "reformatting_steps": 2,
+  "missing_exports": [
+    "crm_summary"
+  ],
+  "operator_complaints": [
+    "review_brief does not map directly to CRM notes",
+    "backlog items still need tracker-specific field mapping"
+  ],
+  "integration_signals": {
+    "crm_signal": "weak",
+    "task_tracker_signal": "strong",
+    "direct_handoff_signal": "weak"
+  },
+  "summary": {
+    "manual_tax_level": "medium",
+    "reformatting_tax_level": "medium",
+    "fit_assessment": "acceptable_with_gaps"
+  }
+}

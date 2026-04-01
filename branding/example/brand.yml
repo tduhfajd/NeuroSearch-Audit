@@ -1,0 +1,20 @@
+name: "Пример Бренда"
+logo: "../../logo.png"
+
+colors:
+  primary: "#1F4ED8"
+  secondary: "#0F172A"
+  accent: "#475569"
+
+company:
+  display_name: "Пример Бренда"
+  legal_name: "ООО «Пример Бренда»"
+  website: "https://example.com"
+  email: "hello@example.com"
+  phone: "+7 (999) 123-45-67"
+  address: "Россия, Москва, Примерная улица, 1"
+  requisites:
+    - "ИНН 7700000000"
+    - "ОГРН 1027700000000"
+    - "р/с 40702810000000000000 в АО «Банк»"
+    - "БИК 044525000"

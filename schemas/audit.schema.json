@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://neurosearch-analyzer.local/schemas/audit.schema.json",
+  "title": "Audit Record",
+  "description": "Lifecycle and metadata for a single audit run.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audit_id",
+    "submitted_url",
+    "normalized_host",
+    "status",
+    "ruleset_version",
+    "created_at",
+    "updated_at",
+    "stage_runs",
+    "package_status"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "audit_id": {
+      "type": "string",
+      "pattern": "^aud_[0-9]{8}T[0-9]{6}Z_[a-z0-9]{6,}$"
+    },
+    "submitted_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "normalized_host": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "accepted",
+        "queued",
+        "crawling",
+        "extracting",
+        "analyzing",
+        "packaging",
+        "validating",
+        "completed",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "ruleset_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "package_status": {
+      "type": "string",
+      "enum": [
+        "not_ready",
+        "building",
+        "rejected",
+        "approved"
+      ]
+    },
+    "stage_runs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/stageRun"
+      }
+    }
+  },
+  "$defs": {
+    "stageRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage",
+        "status",
+        "attempt",
+        "started_at",
+        "inputs",
+        "outputs"
+      ],
+      "properties": {
+        "stage": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "queued",
+            "crawling",
+            "extracting",
+            "analyzing",
+            "packaging",
+            "validating"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "running",
+            "completed",
+            "failed",
+            "cancelled"
+          ]
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "worker_id": {
+          "type": "string"
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "finished_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "error_code": {
+          "type": "string"
+        },
+        "error_message": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

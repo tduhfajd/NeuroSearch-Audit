@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://neurosearch-analyzer.local/schemas/technical_page.schema.json",
+  "title": "Technical Page Artifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audit_id",
+    "url",
+    "source",
+    "extracted_at",
+    "meta",
+    "headings",
+    "schema_hints",
+    "runet_signals",
+    "transport_signals"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "audit_id": {
+      "type": "string",
+      "pattern": "^aud_[0-9]{8}T[0-9]{6}Z_[a-z0-9]{6,}$"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "crawl",
+        "rendered"
+      ]
+    },
+    "extracted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "title": {
+      "type": "string"
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "headings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "h1",
+        "h2"
+      ],
+      "properties": {
+        "h1": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "h2": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "canonical_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "robots": {
+      "type": "string"
+    },
+    "schema_hints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "runet_signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "phones",
+        "emails",
+        "messenger_hints",
+        "payment_hints",
+        "legal_hints"
+      ],
+      "properties": {
+        "phones": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "emails": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "messenger_hints": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "payment_hints": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "legal_hints": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "commercial_signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "price_hints",
+        "timeline_hints",
+        "geo_hints",
+        "offer_terms"
+      ],
+      "properties": {
+        "price_hints": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "timeline_hints": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "geo_hints": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "offer_terms": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "transport_signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strict_transport_security",
+        "mixed_content_urls"
+      ],
+      "properties": {
+        "strict_transport_security": {
+          "type": "string"
+        },
+        "mixed_content_urls": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri" }
+        }
+      }
+    }
+  }
+}

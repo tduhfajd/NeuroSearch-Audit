@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Technical Action Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audit_id",
+    "package_status",
+    "site",
+    "tasks",
+    "checklist"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "audit_id": { "type": "string" },
+    "package_status": { "type": "string" },
+    "site": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_domain", "site_profile"],
+      "properties": {
+        "primary_domain": { "type": "string" },
+        "primary_url": { "type": "string" },
+        "site_profile": { "type": "string" }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "task_id",
+          "title",
+          "priority",
+          "problem_statement",
+          "current_observations",
+          "where_to_change",
+          "target_pages",
+          "implementation_steps",
+          "definition_of_done",
+          "verification",
+          "expected_effect"
+        ],
+        "properties": {
+          "task_id": { "type": "string" },
+          "title": { "type": "string" },
+          "priority": { "type": "string" },
+          "problem_statement": { "type": "string" },
+          "current_observations": { "type": "array", "items": { "type": "string" } },
+          "where_to_change": { "type": "array", "items": { "type": "string" } },
+          "target_pages": { "type": "array", "items": { "type": "string" } },
+          "implementation_steps": { "type": "array", "items": { "type": "string" } },
+          "definition_of_done": { "type": "array", "items": { "type": "string" } },
+          "verification": { "type": "array", "items": { "type": "string" } },
+          "expected_effect": { "type": "string" }
+        }
+      }
+    },
+    "checklist": { "type": "array", "items": { "type": "string" } }
+  }
+}

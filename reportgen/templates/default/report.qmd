@@ -1,0 +1,25 @@
+---
+title: "Экспертный отчёт"
+subtitle: "{{ site_name }}"
+date: "{{ date }}"
+---
+
+## 1. Ключевой вывод
+
+{{ executive_summary }}
+
+## 2. Индексы и интерпретация
+
+{{ indices_section }}
+
+## 3. Приоритетные зоны улучшений
+
+{{ problem_blocks_section }}
+
+## 4. План действий 7/14/21 день
+
+{{ roadmap_section }}
+
+## 5. Ограничения и допущения
+
+{{ constraints_section }}

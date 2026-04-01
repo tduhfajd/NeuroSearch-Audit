@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://neurosearch-analyzer.local/schemas/export_backlog.schema.json",
+  "title": "Export Backlog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "audit_id",
+    "items"
+  ],
+  "properties": {
+    "audit_id": {
+      "type": "string",
+      "pattern": "^aud_[0-9]{8}T[0-9]{6}Z_[a-z0-9]{6,}$"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "recommendation_id",
+          "priority",
+          "expected_impact",
+          "acceptance_criteria",
+          "related_findings"
+        ],
+        "properties": {
+          "recommendation_id": { "type": "string" },
+          "priority": { "type": "string" },
+          "expected_impact": { "type": "string" },
+          "acceptance_criteria": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "related_findings": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

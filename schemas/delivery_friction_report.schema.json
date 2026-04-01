@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://neurosearch.dev/schemas/delivery_friction_report.schema.json",
+  "title": "Delivery Friction Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audit_id",
+    "recorded_at",
+    "review_artifacts",
+    "handoff_events",
+    "manual_steps",
+    "reformatting_steps",
+    "missing_exports",
+    "operator_complaints",
+    "integration_signals",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "audit_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "review_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "handoff_events": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "manual_steps": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "reformatting_steps": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "missing_exports": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "operator_complaints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "integration_signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "crm_signal",
+        "task_tracker_signal",
+        "direct_handoff_signal"
+      ],
+      "properties": {
+        "crm_signal": {
+          "type": "string",
+          "enum": ["none", "weak", "strong"]
+        },
+        "task_tracker_signal": {
+          "type": "string",
+          "enum": ["none", "weak", "strong"]
+        },
+        "direct_handoff_signal": {
+          "type": "string",
+          "enum": ["none", "weak", "strong"]
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manual_tax_level",
+        "reformatting_tax_level",
+        "fit_assessment"
+      ],
+      "properties": {
+        "manual_tax_level": {
+          "type": "string",
+          "enum": ["low", "medium", "high"]
+        },
+        "reformatting_tax_level": {
+          "type": "string",
+          "enum": ["low", "medium", "high"]
+        },
+        "fit_assessment": {
+          "type": "string",
+          "enum": ["good", "acceptable_with_gaps", "poor"]
+        }
+      }
+    }
+  }
+}

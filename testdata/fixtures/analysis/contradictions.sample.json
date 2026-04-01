@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "audit_id": "aud_20260311T120000Z_abc1234",
+  "contradictions": [
+    {
+      "contradiction_id": "aud_20260311T120000Z_abc1234:page:example.com_service:price_conflict",
+      "entity_id": "aud_20260311T120000Z_abc1234:page:example.com_service",
+      "type": "price_conflict",
+      "severity": "high",
+      "sources": [
+        "https://example.com/service",
+        "https://example.com/service/pricing"
+      ],
+      "risk": ["trust", "ai-readiness"]
+    }
+  ]
+}

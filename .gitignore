@@ -22,11 +22,16 @@ chatgpt_session/app_settings.json
 dist/
 build/
 *.egg-info/
+node_modules/
 
 # Runtime files
 *.log
 reports/output/
 generated_reports/
+audit_package/
+runtime/
+out/
+latest_reports/
 
 # Local playbook/docs (keep local only)
 phase-forge-playbook/
@@ -35,3 +40,6 @@ keis.md
 neurosearch-audit-tool.md
 .planning/
 CHANGELOG.md
+
+# Local notes / caches
+analis.md

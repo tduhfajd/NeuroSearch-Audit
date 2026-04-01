@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Technical Client Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audit_id",
+    "package_status",
+    "site",
+    "summary",
+    "issues",
+    "next_steps"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "audit_id": { "type": "string" },
+    "package_status": { "type": "string" },
+    "site": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_domain", "site_profile"],
+      "properties": {
+        "primary_domain": { "type": "string" },
+        "primary_url": { "type": "string" },
+        "site_profile": { "type": "string" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["what_was_analyzed", "overall_readout", "limits"],
+      "properties": {
+        "what_was_analyzed": { "type": "array", "items": { "type": "string" } },
+        "overall_readout": { "type": "array", "items": { "type": "string" } },
+        "limits": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "issue_id",
+          "title",
+          "priority",
+          "diagnosis",
+          "business_risk",
+          "what_was_checked",
+          "target_urls",
+          "what_to_change",
+          "acceptance_criteria",
+          "verification"
+        ],
+        "properties": {
+          "issue_id": { "type": "string" },
+          "title": { "type": "string" },
+          "priority": { "type": "string" },
+          "diagnosis": { "type": "string" },
+          "business_risk": { "type": "string" },
+          "what_was_checked": { "type": "array", "items": { "type": "string" } },
+          "target_urls": { "type": "array", "items": { "type": "string" } },
+          "what_to_change": { "type": "array", "items": { "type": "string" } },
+          "acceptance_criteria": { "type": "array", "items": { "type": "string" } },
+          "verification": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "next_steps": { "type": "array", "items": { "type": "string" } }
+  }
+}

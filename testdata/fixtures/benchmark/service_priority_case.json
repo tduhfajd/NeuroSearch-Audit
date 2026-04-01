@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "service_priority_case",
+  "segment": "service",
+  "page_type": "service",
+  "source_fixture": "testdata/package-sample/handoff/aud_20260311T120000Z_abc1234/delivery_friction_report.json",
+  "expected_signals": {
+    "manual_tax_level": "medium",
+    "fit_assessment": "acceptable_with_gaps",
+    "top_gap_focus": [
+      "pricing",
+      "contacts",
+      "process_steps"
+    ]
+  },
+  "calibration_notes": [
+    "Service pages with P0 coverage gaps should remain commercially visible in review artifacts.",
+    "A strong task-tracker signal alone is not enough to change scoring severity; it is only an integration signal."
+  ]
+}

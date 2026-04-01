@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0",
+  "audit_id": "aud_20260311T120000Z_abc1234",
+  "url": "https://example.com/service",
+  "page_type": "service",
+  "blocks": [
+    {
+      "type": "definition",
+      "present": true,
+      "confidence": 0.8,
+      "evidence": [
+        {
+          "source_url": "https://example.com/service",
+          "field": "title"
+        }
+      ]
+    },
+    {
+      "type": "faq",
+      "present": true,
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "source_url": "https://example.com/service",
+          "field": "schema_hints"
+        }
+      ]
+    }
+  ],
+  "facts": [
+    {
+      "fact_type": "contact_phone",
+      "value": "+7 999 000-00-00",
+      "evidence": [
+        {
+          "source_url": "https://example.com/service",
+          "field": "runet_signals.phones"
+        }
+      ]
+    },
+    {
+      "fact_type": "payment_option",
+      "value": "visa",
+      "evidence": [
+        {
+          "source_url": "https://example.com/service",
+          "field": "runet_signals.payment_hints"
+        }
+      ]
+    }
+  ],
+  "updated_at": "2026-03-11T17:57:39Z"
+}

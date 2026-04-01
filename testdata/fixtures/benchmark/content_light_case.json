@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "content_light_case",
+  "segment": "content",
+  "page_type": "article",
+  "source_fixture": "testdata/fixtures/analysis/page_blocks.sample.json",
+  "expected_signals": {
+    "manual_tax_level": "low",
+    "fit_assessment": "good",
+    "top_gap_focus": [
+      "definition",
+      "faq"
+    ]
+  },
+  "calibration_notes": [
+    "Content-oriented pages should not inherit service-page delivery friction assumptions.",
+    "Benchmark diversity must cover at least one non-service page type before policy changes are proposed."
+  ]
+}

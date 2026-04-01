@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://neurosearch-analyzer.local/schemas/render_fallback_report.schema.json",
+  "title": "Render Fallback Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audit_id",
+    "generated_at",
+    "max_rendered",
+    "attempted_count",
+    "rendered_count",
+    "failed_count",
+    "skipped_due_to_limit_count",
+    "entries"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "audit_id": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "max_rendered": { "type": "integer", "minimum": 0 },
+    "attempted_count": { "type": "integer", "minimum": 0 },
+    "rendered_count": { "type": "integer", "minimum": 0 },
+    "failed_count": { "type": "integer", "minimum": 0 },
+    "skipped_due_to_limit_count": { "type": "integer", "minimum": 0 },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["url", "reason", "status"],
+        "properties": {
+          "url": { "type": "string" },
+          "reason": { "type": "string" },
+          "status": { "type": "string", "enum": ["rendered", "failed", "skipped_limit"] },
+          "error": { "type": "string" }
+        }
+      }
+    }
+  }
+}

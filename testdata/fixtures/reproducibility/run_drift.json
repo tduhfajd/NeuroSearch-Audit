@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0.0",
+  "audit_id": "aud_20260311T120000Z_abc1234",
+  "url": "https://example.com/service",
+  "page_type": "service",
+  "blocks": [
+    {
+      "type": "definition",
+      "present": false,
+      "confidence": 0.1,
+      "evidence": []
+    }
+  ],
+  "updated_at": "2026-03-11T10:05:00Z"
+}

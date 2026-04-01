@@ -1,0 +1,357 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://neurosearch.dev/schemas/review_brief.schema.json",
+  "title": "Review Brief",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audit_id",
+    "package_status",
+    "lead_value_index",
+    "summary",
+    "executive_summary",
+    "crawl_quality",
+    "top_gaps",
+    "action_plan",
+    "current_strengths",
+    "focus_areas",
+    "priority_pages",
+    "high_contradictions",
+    "priority_recommendations",
+    "evidence_sources"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "audit_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "package_status": {
+      "type": "string",
+      "enum": ["approved"]
+    },
+    "lead_value_index": {
+      "type": "number"
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "page_count",
+        "high_contradiction_count",
+        "p0_coverage_targets",
+        "validate_status"
+      ],
+      "properties": {
+        "page_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "high_contradiction_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "p0_coverage_targets": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "validate_status": {
+          "type": "string"
+        }
+      }
+    },
+    "executive_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "site_profile",
+        "health_band",
+        "overview",
+        "primary_risk",
+        "primary_opportunity",
+        "next_step"
+      ],
+      "properties": {
+        "site_profile": {
+          "type": "string"
+        },
+        "health_band": {
+          "type": "string"
+        },
+        "overview": {
+          "type": "string"
+        },
+        "primary_risk": {
+          "type": "string"
+        },
+        "primary_opportunity": {
+          "type": "string"
+        },
+        "next_step": {
+          "type": "string"
+        }
+      }
+    },
+    "crawl_quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "visited_url_count",
+        "skipped_url_count",
+        "filtered_url_count",
+        "fetch_failure_count",
+        "fetched_count",
+        "html_count",
+        "non_html_count",
+        "raw_page_count",
+        "submitted_count",
+        "sitemap_count",
+        "discovered_count",
+        "discovery_mode",
+        "protocol_duplication",
+        "warnings"
+      ],
+      "properties": {
+        "visited_url_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skipped_url_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "filtered_url_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fetch_failure_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fetched_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "html_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "non_html_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "raw_page_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "submitted_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sitemap_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "discovered_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "discovery_mode": {
+          "type": "string",
+          "enum": ["submitted-only", "homepage-led", "sitemap-led", "mixed"]
+        },
+        "protocol_duplication": {
+          "type": "boolean"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "top_gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "action_plan": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "priority",
+          "summary",
+          "expected_impact",
+          "related_findings_count"
+        ],
+        "properties": {
+          "priority": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "expected_impact": {
+            "type": "string"
+          },
+          "related_findings_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "current_strengths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "focus_areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "page_type",
+          "page_count",
+          "top_missing"
+        ],
+        "properties": {
+          "page_type": {
+            "type": "string"
+          },
+          "page_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "top_missing": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "priority_pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "entity_id",
+          "url",
+          "page_type",
+          "coverage_score",
+          "missing",
+          "scores"
+        ],
+        "properties": {
+          "entity_id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "page_type": {
+            "type": "string"
+          },
+          "coverage_score": {
+            "type": "number"
+          },
+          "missing": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scores": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "high_contradictions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["contradiction_id", "type", "severity", "sources", "risk"],
+        "properties": {
+          "contradiction_id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "risk": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "priority_recommendations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "recommendation_id",
+          "priority",
+          "expected_impact",
+          "acceptance_criteria",
+          "related_findings"
+        ],
+        "properties": {
+          "recommendation_id": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "expected_impact": {
+            "type": "string"
+          },
+          "acceptance_criteria": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "related_findings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "evidence_sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

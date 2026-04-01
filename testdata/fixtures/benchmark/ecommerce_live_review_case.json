@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "ecommerce_live_review_case",
+  "segment": "commercial",
+  "page_type": "product",
+  "source_fixture": "testdata/fixtures/benchmark/ecommerce_live_review_brief.snapshot.json",
+  "expected_signals": {
+    "manual_tax_level": "high",
+    "fit_assessment": "acceptable_with_gaps",
+    "top_gap_focus": [
+      "proof",
+      "terms",
+      "service_scope"
+    ]
+  },
+  "calibration_notes": [
+    "Commerce-heavy live output should keep product and wholesale gaps commercially visible.",
+    "Expanded rules should not flatten product, homepage, and wholesale gaps into one generic content bucket."
+  ]
+}

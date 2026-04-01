@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Expert Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audit_id",
+    "package_status",
+    "site",
+    "sections"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "audit_id": { "type": "string" },
+    "package_status": { "type": "string" },
+    "site": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_domain", "site_profile"],
+      "properties": {
+        "primary_domain": { "type": "string" },
+        "primary_url": { "type": "string" },
+        "site_profile": { "type": "string" }
+      }
+    },
+    "sections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "executive_summary",
+        "what_was_evaluated",
+        "indices",
+        "strengths",
+        "limitations",
+        "priority_workstreams",
+        "roadmap_30_60_90",
+        "measurement",
+        "constraints"
+      ],
+      "properties": {
+        "executive_summary": { "type": "array", "items": { "type": "string" } },
+        "what_was_evaluated": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "description"],
+            "properties": {
+              "label": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "indices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "value", "interpretation"],
+            "properties": {
+              "label": { "type": "string" },
+              "value": { "type": "number" },
+              "interpretation": { "type": "string" }
+            }
+          }
+        },
+        "strengths": { "type": "array", "items": { "type": "string" } },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["area", "what_was_checked", "observations", "business_impact", "recommended_direction"],
+            "properties": {
+              "area": { "type": "string" },
+              "what_was_checked": { "type": "string" },
+              "observations": { "type": "array", "items": { "type": "string" } },
+              "business_impact": { "type": "string" },
+              "recommended_direction": { "type": "string" }
+            }
+          }
+        },
+        "priority_workstreams": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "problem", "actions", "result"],
+            "properties": {
+              "name": { "type": "string" },
+              "problem": { "type": "string" },
+              "actions": { "type": "array", "items": { "type": "string" } },
+              "result": { "type": "string" }
+            }
+          }
+        },
+        "roadmap_30_60_90": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["window", "goal", "actions", "result"],
+            "properties": {
+              "window": { "type": "string" },
+              "goal": { "type": "string" },
+              "actions": { "type": "array", "items": { "type": "string" } },
+              "result": { "type": "string" }
+            }
+          }
+        },
+        "measurement": { "type": "array", "items": { "type": "string" } },
+        "constraints": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

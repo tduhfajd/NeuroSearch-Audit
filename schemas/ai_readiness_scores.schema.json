@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://neurosearch-analyzer.local/schemas/ai_readiness_scores.schema.json",
+  "title": "AI Readiness Scores",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audit_id",
+    "ruleset_version",
+    "page_scores",
+    "entity_scores",
+    "top_gaps",
+    "lead_value_index"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "audit_id": {
+      "type": "string",
+      "pattern": "^aud_[0-9]{8}T[0-9]{6}Z_[a-z0-9]{6,}$"
+    },
+    "ruleset_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "page_scores": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "url",
+          "scores",
+          "factors"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "scores": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "factors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "entity_scores": {
+      "type": "array"
+    },
+    "top_gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "lead_value_index": {
+      "type": "number",
+      "minimum": 0
+    }
+  }
+}

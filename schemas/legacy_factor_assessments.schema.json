@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Legacy Factor Assessments",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "audit_id", "source_method", "assessments", "summary"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "audit_id": { "type": "string" },
+    "source_method": { "type": "string" },
+    "assessments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["factor_id", "name", "tier", "level", "status", "measurement_key", "summary"],
+        "properties": {
+          "factor_id": { "type": "string" },
+          "name": { "type": "string" },
+          "tier": { "type": "string" },
+          "level": { "type": "string" },
+          "status": { "type": "string", "enum": ["pass", "partial", "fail", "unmeasured"] },
+          "score": { "type": ["number", "null"] },
+          "measurement_key": { "type": "string" },
+          "measurement_value": { "type": ["number", "null"] },
+          "summary": { "type": "string" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_factors", "measured_factors", "unmeasured_factors", "levels_covered"],
+      "properties": {
+        "total_factors": { "type": "integer", "minimum": 0 },
+        "measured_factors": { "type": "integer", "minimum": 0 },
+        "unmeasured_factors": { "type": "integer", "minimum": 0 },
+        "levels_covered": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

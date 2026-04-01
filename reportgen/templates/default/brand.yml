@@ -1,0 +1,10 @@
+name: Медиа Сервис
+logo: assets/logo_ms.png
+
+colors:
+  primary: "#4874E0"
+  secondary: "#1F46B6"
+  accent: "#44546A"
+
+font:
+  main: "Helvetica"

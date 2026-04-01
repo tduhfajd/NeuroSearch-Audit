@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "audit_id": "aud_20260311T120000Z_abc1234",
+  "url": "https://example.com/service",
+  "source": "rendered",
+  "extracted_at": "2026-03-11T14:00:00Z",
+  "title": "Service Page",
+  "meta": {
+    "description": "Technical description"
+  },
+  "headings": {
+    "h1": ["Main heading"],
+    "h2": ["Step one", "Step two"]
+  },
+  "canonical_url": "https://example.com/service",
+  "robots": "index,follow",
+  "schema_hints": ["faqpage"],
+  "runet_signals": {
+    "phones": ["79991234567"],
+    "emails": ["hello@example.com"],
+    "messenger_hints": ["telegram"],
+    "payment_hints": ["оплата", "сбп"],
+    "legal_hints": ["гарант", "возврат"]
+  },
+  "commercial_signals": {
+    "price_hints": ["25 000 руб."],
+    "timeline_hints": ["5 дней"],
+    "geo_hints": ["по россии"],
+    "offer_terms": ["по договору"]
+  },
+  "transport_signals": {
+    "strict_transport_security": "max-age=31536000; includeSubDomains",
+    "mixed_content_urls": []
+  }
+}

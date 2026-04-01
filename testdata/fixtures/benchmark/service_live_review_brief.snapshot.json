@@ -1,0 +1,19 @@
+{
+  "audit_id": "aud_20260312T142446Z_37s2yka",
+  "site_profile": "service",
+  "top_gaps": [
+    "proof"
+  ],
+  "focus_areas": [
+    {
+      "page_type": "homepage",
+      "page_count": 1,
+      "top_missing": [
+        "proof"
+      ]
+    }
+  ],
+  "current_strengths": [
+    "Contacts pages already provide strong baseline coverage."
+  ]
+}

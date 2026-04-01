@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "audit_id": "aud_20260311T120000Z_abc1234",
+  "entities": [
+    {
+      "entity_id": "aud_20260311T120000Z_abc1234:page:example.com_service",
+      "type": "page",
+      "label": "https://example.com/service",
+      "attributes": {
+        "page_type": "service"
+      },
+      "source_urls": [
+        "https://example.com/service"
+      ]
+    }
+  ]
+}

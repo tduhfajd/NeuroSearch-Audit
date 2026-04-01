@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://neurosearch.dev/schemas/handoff_event.schema.json",
+  "title": "Handoff Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "audit_id",
+    "timestamp",
+    "event_type",
+    "actor",
+    "artifacts"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "audit_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "package_approved",
+        "review_prepared",
+        "ai_handoff_sent",
+        "post_handoff_captured"
+      ]
+    },
+    "actor": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "audit_id": "aud_20260312T142327Z_oyrmchi",
+  "site_profile": "ecommerce",
+  "top_gaps": [
+    "proof",
+    "terms",
+    "service_scope",
+    "process_steps"
+  ],
+  "focus_areas": [
+    {
+      "page_type": "product",
+      "page_count": 4,
+      "top_missing": [
+        "proof",
+        "terms"
+      ]
+    },
+    {
+      "page_type": "homepage",
+      "page_count": 1,
+      "top_missing": [
+        "proof",
+        "service_scope"
+      ]
+    },
+    {
+      "page_type": "wholesale",
+      "page_count": 1,
+      "top_missing": [
+        "process_steps",
+        "proof"
+      ]
+    }
+  ]
+}

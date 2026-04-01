@@ -1,0 +1,50 @@
+version: 0.2
+principles:
+  - "Веса — гипотезы до прохождения тестирования на 10–20 сайтах."
+  - "Сумма весов по индексу нормируется до 1.0."
+  - "Скоринг считается по tier: core обязателен, extended добавляется при наличии данных."
+missing_data_policy:
+  levels: "renormalize"
+  tiers: "ignore_unmeasured"
+tiers:
+  semantics:
+    core: "обязательный контур (межнишево)"
+    extended: "подключаемый слой (по каналу/цели/данным)"
+    experimental: "исследовательский слой (не влияет на итог по умолчанию)"
+indices:
+  ai_readiness:
+    description: "Насколько сайт пригоден для корректной интерпретации и использования AI-системами."
+    tier_weights:
+      core: 0.8
+      extended: 0.2
+      experimental: 0.0
+    weights_by_level:
+      L1_technical: 0.25
+      L2_content: 0.25
+      L3_semantic: 0.20
+      L4_behavioral: 0.10
+      L5_ai_interpretability: 0.20
+  generative_visibility:
+    description: "Вероятность быть использованным как источник в генеративных ответах."
+    tier_weights:
+      core: 0.8
+      extended: 0.2
+      experimental: 0.0
+    weights_by_level:
+      L1_technical: 0.20
+      L2_content: 0.25
+      L3_semantic: 0.30
+      L4_behavioral: 0.10
+      L5_ai_interpretability: 0.15
+  answer_fitness:
+    description: "Насколько контент/структура подходит для ответных движков."
+    tier_weights:
+      core: 0.8
+      extended: 0.2
+      experimental: 0.0
+    weights_by_level:
+      L1_technical: 0.15
+      L2_content: 0.30
+      L3_semantic: 0.15
+      L4_behavioral: 0.10
+      L5_ai_interpretability: 0.30

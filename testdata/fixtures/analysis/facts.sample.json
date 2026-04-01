@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0.0",
+  "audit_id": "aud_20260311T120000Z_abc1234",
+  "facts": [
+    {
+      "fact_id": "aud_20260311T120000Z_abc1234:page:example.com_service:page_type",
+      "entity_id": "aud_20260311T120000Z_abc1234:page:example.com_service",
+      "fact_type": "page_type",
+      "value": "service",
+      "evidence": [
+        {
+          "source_url": "https://example.com/service",
+          "field": "page_type"
+        }
+      ]
+    },
+    {
+      "fact_id": "aud_20260311T120000Z_abc1234:page:example.com_service:block:definition",
+      "entity_id": "aud_20260311T120000Z_abc1234:page:example.com_service",
+      "fact_type": "block_presence",
+      "value": "definition:true",
+      "evidence": [
+        {
+          "source_url": "https://example.com/service",
+          "field": "title"
+        }
+      ]
+    },
+    {
+      "fact_id": "aud_20260311T120000Z_abc1234:page:example.com_service:block:faq",
+      "entity_id": "aud_20260311T120000Z_abc1234:page:example.com_service",
+      "fact_type": "block_presence",
+      "value": "faq:true",
+      "evidence": [
+        {
+          "source_url": "https://example.com/service",
+          "field": "schema_hints"
+        }
+      ]
+    },
+    {
+      "fact_id": "aud_20260311T120000Z_abc1234:page:example.com_service:price:one",
+      "entity_id": "aud_20260311T120000Z_abc1234:page:example.com_service",
+      "fact_type": "price",
+      "value": "10000",
+      "evidence": [
+        {
+          "source_url": "https://example.com/service",
+          "field": "pricing"
+        }
+      ]
+    },
+    {
+      "fact_id": "aud_20260311T120000Z_abc1234:page:example.com_service:price:two",
+      "entity_id": "aud_20260311T120000Z_abc1234:page:example.com_service",
+      "fact_type": "price",
+      "value": "12000",
+      "evidence": [
+        {
+          "source_url": "https://example.com/service/pricing",
+          "field": "pricing"
+        }
+      ]
+    }
+  ]
+}
